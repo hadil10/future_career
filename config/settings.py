@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-pz67(0#igyz-t)^^4s#st#q9-*f-1$5$1k#wl^(e7(#z%c796%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
 
 
 # Application definition
@@ -83,10 +83,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DATABASE_NAME' ),
+        'NAME': os.environ.get('DATABASE_NAME'),
         'USER': os.environ.get('DATABASE_USER'),
         'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
-        'HOST': 'localhost', #  l'adresse de  serveur de base de données 
+        'HOST': 'localhost',  # l'adresse de serveur de base de données 
+        'PORT': '5432',  # Port par défaut de PostgreSQL
     }
 }
 
@@ -123,12 +124,14 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
+
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'user.CustomUser'
@@ -137,11 +140,21 @@ LOGIN_URL = 'user:login'
 LOGOUT_REDIRECT_URL = 'profiles:home'
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
-MEDIA8_URL = '/media/'
-MEDIA_ROOT = BASE_DIR/ 'media'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # =======================================================
 # CONFIGURATION POUR L'ENVOI D'E-MAILS (via Gmail)
 # =======================================================
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# =======================================================
+# CONFIGURATION DES APIS EXTERNES
+# =======================================================
+
+# JSearch API (RapidAPI) pour la recherche d'emploi
+RAPIDAPI_KEY = os.environ.get('RAPIDAPI_KEY')
+
+# OpenAI API pour l'analyse IA (optionnel)
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')

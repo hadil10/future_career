@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Debug Template{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1>🔍 Debug Template - État de l'Utilisateur</h1>
+    
+    <div class="alert alert-info">
+        <h5>Informations de l'utilisateur :</h5>
+        <ul>
+            <li><strong>user.is_authenticated:</strong> {{ user.is_authenticated }}</li>
+            <li><strong>user.username:</strong> {{ user.username|default:"Non défini" }}</li>
+            <li><strong>user.user_type:</strong> {{ user.user_type|default:"Non défini" }}</li>
+            <li><strong>user.is_staff:</strong> {{ user.is_staff|default:"Non défini" }}</li>
+            <li><strong>user.is_active:</strong> {{ user.is_active|default:"Non défini" }}</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Test des Conditions d'Affichage IA</h5>
+        </div>
+        <div class="card-body">
+            <h6>Condition 1: user.is_authenticated</h6>
+            {% if user.is_authenticated %}
+                <div class="alert alert-success">✅ VRAI - L'utilisateur est authentifié</div>
+            {% else %}
+                <div class="alert alert-danger">❌ FAUX - L'utilisateur n'est pas authentifié</div>
+            {% endif %}
+
+            <h6>Condition 2: user.user_type == 'student'</h6>
+            {% if user.user_type == 'student' %}
+                <div class="alert alert-success">✅ VRAI - L'utilisateur est un étudiant</div>
+            {% else %}
+                <div class="alert alert-danger">❌ FAUX - L'utilisateur n'est pas un étudiant (type: {{ user.user_type|default:"Non défini" }})</div>
+            {% endif %}
+
+            <h6>Condition Combinée: user.is_authenticated AND user.user_type == 'student'</h6>
+            {% if user.is_authenticated and user.user_type == 'student' %}
+                <div class="alert alert-success">
+                    <h5>✅ TOUTES LES CONDITIONS SONT REMPLIES</h5>
+                    <p>Les icônes IA devraient être visibles !</p>
+                </div>
+                
+                <!-- Test d'affichage du menu IA -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6>Test du Menu IA (copie du code de base.html)</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="dropdown">
+                            <a class="btn btn-success dropdown-toggle" href="#" id="testAiDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-robot"></i> IA (Test)
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="testAiDropdown">
+                                <li><a class="dropdown-item" href="{% url 'profiles:ai-dashboard' %}">
+                                    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord IA
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'profiles:ai-job-search' %}">
+                                    <i class="bi bi-search me-2"></i>Recherche intelligente
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'profiles:ai-career-guidance' %}">
+                                    <i class="bi bi-compass me-2"></i>Conseils de carrière
+                                </a></li>
+                            </ul>
+                        </div>
+                        <p class="text-muted mt-2">Si ce menu s'affiche, le problème n'est pas dans les conditions.</p>
+                    </div>
+                </div>
+
+                <!-- Test du bouton IA -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6>Test du Bouton IA (copie du code de recommendations.html)</h6>
+                    </div>
+                    <div class="card-body">
+                        <button id="testAiSearchBtn" class="btn btn-success" onclick="alert('Bouton IA fonctionne!')" title="Recherche IA instantanée">
+                            <i class="bi bi-robot me-1"></i>
+                            <span class="ai-search-text">Recherche IA (Test)</span>
+                        </button>
+                        <p class="text-muted mt-2">Si ce bouton s'affiche, le problème n'est pas dans le code du bouton.</p>
+                    </div>
+                </div>
+                
+            {% else %}
+                <div class="alert alert-danger">
+                    <h5>❌ CONDITIONS NON REMPLIES</h5>
+                    <p>Les icônes IA ne peuvent pas s'afficher.</p>
+                    <ul>
+                        <li>Authentifié: {{ user.is_authenticated }}</li>
+                        <li>Type: {{ user.user_type|default:"Non défini" }}</li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Actions de Débogage</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Vérifications à faire :</h6>
+                    <ul>
+                        <li>Vider le cache du navigateur (Ctrl+F5)</li>
+                        <li>Vérifier la console JavaScript (F12)</li>
+                        <li>Tester sur un autre navigateur</li>
+                        <li>Vérifier les erreurs dans les logs Django</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6>Pages à tester :</h6>
+                    <ul>
+                        <li><a href="{% url 'profiles:recommendations' %}" target="_blank">Page Recommandations</a></li>
+                        <li><a href="{% url 'profiles:home' %}" target="_blank">Page d'Accueil</a></li>
+                        <li><a href="{% url 'profiles:offer-list' %}" target="_blank">Liste des Offres</a></li>
+                        <li><a href="{% url 'profiles:ai-dashboard' %}" target="_blank">Tableau de Bord IA</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

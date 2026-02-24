@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Icônes IA{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h1>🤖 Test des Icônes IA</h1>
+            
+            <div class="alert alert-info">
+                <h5>État de l'utilisateur :</h5>
+                <ul>
+                    <li><strong>Connecté :</strong> {% if user.is_authenticated %}✅ Oui{% else %}❌ Non{% endif %}</li>
+                    {% if user.is_authenticated %}
+                    <li><strong>Nom d'utilisateur :</strong> {{ user.username }}</li>
+                    <li><strong>Type d'utilisateur :</strong> {{ user.user_type }}</li>
+                    <li><strong>Email :</strong> {{ user.email }}</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            {% if user.is_authenticated and user.user_type == 'student' %}
+                <div class="alert alert-success">
+                    <h5>✅ Vous êtes connecté en tant qu'étudiant !</h5>
+                    <p>Les icônes IA devraient être visibles.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h5>🎯 Emplacements des Icônes IA</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>1. Menu Navigation (en haut)</h6>
+                                <p class="text-muted">Cherchez le menu déroulant "IA" avec icône robot 🤖</p>
+                                
+                                <h6>2. Page des Recommandations</h6>
+                                <a href="{% url 'profiles:recommendations' %}" class="btn btn-primary mb-2">
+                                    Aller aux Recommandations
+                                </a>
+                                <p class="text-muted">Bouton vert "Recherche IA" en haut de la page</p>
+                                
+                                <h6>3. Page d'Accueil</h6>
+                                <a href="{% url 'profiles:home' %}" class="btn btn-primary mb-2">
+                                    Aller à l'Accueil
+                                </a>
+                                <p class="text-muted">Bouton vert "Recherche IA" dans la section héros</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>4. Tableau de Bord IA</h6>
+                                <a href="{% url 'profiles:ai-dashboard' %}" class="btn btn-success mb-2">
+                                    Tableau de Bord IA
+                                </a>
+                                <p class="text-muted">Page dédiée à l'IA</p>
+                                
+                                <h6>5. Recherche IA</h6>
+                                <a href="{% url 'profiles:ai-job-search' %}" class="btn btn-success mb-2">
+                                    Recherche Intelligente
+                                </a>
+                                <p class="text-muted">Page de recherche IA avancée</p>
+                                
+                                <h6>6. Liste des Offres</h6>
+                                <a href="{% url 'profiles:offer-list' %}" class="btn btn-primary mb-2">
+                                    Liste des Offres
+                                </a>
+                                <p class="text-muted">Bouton "IA" dans les options de tri</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test du bouton IA ici -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5>🧪 Test du Bouton IA</h5>
+                    </div>
+                    <div class="card-body">
+                        <button id="testAiBtn" class="btn btn-success btn-lg" onclick="launchAISearch()">
+                            <i class="bi bi-robot me-2"></i>
+                            Test Recherche IA
+                        </button>
+                        <p class="text-muted mt-2">Cliquez sur ce bouton pour tester la fonctionnalité IA</p>
+                    </div>
+                </div>
+
+            {% elif user.is_authenticated and user.user_type == 'company' %}
+                <div class="alert alert-warning">
+                    <h5>⚠️ Vous êtes connecté en tant qu'entreprise</h5>
+                    <p>Les icônes IA pour étudiants ne sont pas visibles. Connectez-vous avec un compte étudiant.</p>
+                    <a href="{% url 'user:logout' %}" class="btn btn-warning">Se déconnecter</a>
+                </div>
+
+            {% else %}
+                <div class="alert alert-danger">
+                    <h5>❌ Vous n'êtes pas connecté</h5>
+                    <p>Connectez-vous avec un compte étudiant pour voir les icônes IA.</p>
+                    <a href="{% url 'user:login' %}" class="btn btn-primary">Se connecter</a>
+                </div>
+            {% endif %}
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>📋 Comptes de Test Disponibles</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Comptes Étudiants (pour voir les icônes IA) :</h6>
+                    <ul>
+                        <li><strong>admin1</strong> - admin@futurecareer.com (avec compétences)</li>
+                        <li><strong>admin</strong> - admin@gmail.com (avec compétences)</li>
+                        <li><strong>Testuser1</strong> (avec compétences)</li>
+                        <li><strong>hadilmansour1</strong> - mansourhadil10@gmail.com</li>
+                        <li><strong>testeurfinal</strong> - testeurfinal@gmail.com</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de test IA -->
+<div class="modal fade" id="aiSearchModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">🤖 Test IA Réussi !</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>✅ Le bouton IA fonctionne correctement !</p>
+                <p>Vous pouvez maintenant utiliser cette fonctionnalité sur les autres pages.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function launchAISearch() {
+    // Afficher le modal de test
+    const modal = new bootstrap.Modal(document.getElementById('aiSearchModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

@@ -1,63 +1,536 @@
 {% extends 'base.html' %}
-
-<!-- 1. On charge notre nouveau fichier de filtres -->
 {% load profile_tags %}
 
 {% block title %}Questionnaire - Évaluation{% endblock %}
 
 {% block content %}
 <div class="container my-5">
-    <div class="col-lg-8 mx-auto">
+    <div class="col-lg-10 mx-auto">
         
-        <form method="post">
+        <!-- Indicateur de progression du questionnaire -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Progression du questionnaire</h6>
+                    <span class="badge bg-primary" id="completion-badge">0% complété</span>
+                </div>
+                <div class="progress mt-2" style="height: 8px;">
+                    <div class="progress-bar" role="progressbar" style="width: 0%" id="completion-progress"></div>
+                </div>
+                <small class="text-muted mt-1 d-block" id="completion-text">Commencez à évaluer vos compétences et intérêts</small>
+            </div>
+        </div>
+        
+        <form method="post" id="questionnaire-form" onsubmit="disableBeforeUnload()">
             {% csrf_token %}
 
             <!-- SECTION COMPÉTENCES -->
-            <h1 class="mb-4">Évaluation de vos Compétences</h1>
-            <p class="lead mb-4">Pour chaque compétence, indiquez votre niveau de maîtrise de 1 (Débutant) à 5 (Expert).</p>
-            <div class="card shadow-sm mb-5">
-                <div class="card-body p-4">
-                    {% for skill in all_skills %}
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">{{ skill.name }}</label>
-                            <div class="d-flex justify-content-between">
-                                {% for level, description in skill_levels %}
-                                    <div class="form-check form-check-inline">
-                                        <!-- 2. On utilise notre filtre 'get_item' -->
-                                        <input class="form-check-input" type="radio" name="skill_{{ skill.id }}" id="skill_{{ skill.id }}_{{ level }}" value="{{ level }}" {% if existing_skill_evals|get_item:skill.id == level %}checked{% endif %}>
-                                        <label class="form-check-label" for="skill_{{ skill.id }}_{{ level }}">{{ level }} <small class="text-muted">{{ description }}</small></label>
-                                    </div>
-                                {% endfor %}
+            <div class="mb-5">
+                <h1 class="mb-4">Évaluation de vos Compétences</h1>
+                <p class="lead mb-4">Pour chaque compétence, indiquez votre niveau de maîtrise de 1 (Débutant) à 5 (Expert).</p>
+                
+                <!-- Filtres pour les compétences -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="skill-search" class="form-label">🔍 Rechercher une compétence</label>
+                                <input type="text" class="form-control" id="skill-search" placeholder="Ex: Python, JavaScript, Gestion...">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="skill-filter" class="form-label">📂 Filtrer par catégorie</label>
+                                <select class="form-select" id="skill-filter">
+                                    <option value="">Toutes les compétences</option>
+                                    <option value="technique">Compétences techniques</option>
+                                    <option value="gestion">Gestion et management</option>
+                                    <option value="communication">Communication</option>
+                                    <option value="design">Design et créativité</option>
+                                    <option value="autre">Autres</option>
+                                </select>
                             </div>
                         </div>
-                    {% endfor %}
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSkillFilters()">Effacer les filtres</button>
+                            <span class="ms-3 text-muted" id="skill-count">{{ all_skills|length }} compétence(s) affichée(s)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body p-4" id="skills-container">
+                        {% for skill in all_skills %}
+                            <div class="skill-item mb-4" data-skill-name="{{ skill.name|lower }}" data-skill-category="{% if 'python' in skill.name|lower or 'java' in skill.name|lower or 'html' in skill.name|lower or 'css' in skill.name|lower or 'javascript' in skill.name|lower %}technique{% elif 'gestion' in skill.name|lower or 'management' in skill.name|lower or 'projet' in skill.name|lower %}gestion{% elif 'communication' in skill.name|lower or 'présentation' in skill.name|lower %}communication{% elif 'design' in skill.name|lower or 'graphique' in skill.name|lower %}design{% else %}autre{% endif %}">
+                                <label class="form-label fw-bold">{{ skill.name }}</label>
+                                <div class="d-flex justify-content-between flex-wrap">
+                                    {% for level, description in skill_levels %}
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="skill_{{ skill.id }}" id="skill_{{ skill.id }}_{{ level }}" value="{{ level }}" {% if existing_skill_evals|get_item:skill.id == level %}checked{% endif %}>
+                                            <label class="form-check-label" for="skill_{{ skill.id }}_{{ level }}">
+                                                {{ level }} <small class="text-muted d-block">{{ description }}</small>
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
 
             <!-- SECTION INTÉRÊTS -->
-            <h1 class="mb-4">Évaluation de vos Centres d'Intérêt</h1>
-            <p class="lead mb-4">Pour chaque centre d'intérêt, indiquez votre niveau d'intérêt de 1 (Pas intéressé) à 5 (Passionné).</p>
-            <div class="card shadow-sm mb-5">
-                <div class="card-body p-4">
-                    {% for interest in all_interests %}
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">{{ interest.name }}</label>
-                            <div class="d-flex justify-content-between">
-                                {% for level, description in interest_levels %}
-                                    <div class="form-check form-check-inline">
-                                        <!-- 3. On réutilise notre filtre 'get_item' -->
-                                        <input class="form-check-input" type="radio" name="interest_{{ interest.id }}" id="interest_{{ interest.id }}_{{ level }}" value="{{ level }}" {% if existing_interest_evals|get_item:interest.id == level %}checked{% endif %}>
-                                        <label class="form-check-label" for="interest_{{ interest.id }}_{{ level }}">{{ level }} <small class="text-muted">{{ description }}</small></label>
-                                    </div>
-                                {% endfor %}
+            <div class="mb-5">
+                <h1 class="mb-4">Évaluation de vos Centres d'Intérêt</h1>
+                <p class="lead mb-4">Pour chaque centre d'intérêt, indiquez votre niveau d'intérêt de 1 (Pas intéressé) à 5 (Passionné).</p>
+                
+                <!-- Filtres pour les intérêts -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="interest-search" class="form-label">🔍 Rechercher un centre d'intérêt</label>
+                                <input type="text" class="form-control" id="interest-search" placeholder="Ex: Intelligence Artificielle, Marketing...">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="interest-filter" class="form-label">📂 Filtrer par domaine</label>
+                                <select class="form-select" id="interest-filter">
+                                    <option value="">Tous les domaines</option>
+                                    <option value="technologie">Technologie</option>
+                                    <option value="business">Business et Finance</option>
+                                    <option value="creativite">Créativité et Arts</option>
+                                    <option value="science">Sciences</option>
+                                    <option value="social">Social et Humain</option>
+                                    <option value="autre">Autres</option>
+                                </select>
                             </div>
                         </div>
-                    {% endfor %}
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearInterestFilters()">Effacer les filtres</button>
+                            <span class="ms-3 text-muted" id="interest-count">{{ all_interests|length }} centre(s) d'intérêt affiché(s)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body p-4" id="interests-container">
+                        {% for interest in all_interests %}
+                            <div class="interest-item mb-4" data-interest-name="{{ interest.name|lower }}" data-interest-category="{% if 'intelligence' in interest.name|lower or 'technologie' in interest.name|lower or 'informatique' in interest.name|lower %}technologie{% elif 'business' in interest.name|lower or 'finance' in interest.name|lower or 'marketing' in interest.name|lower %}business{% elif 'design' in interest.name|lower or 'art' in interest.name|lower or 'créativité' in interest.name|lower %}creativite{% elif 'science' in interest.name|lower or 'recherche' in interest.name|lower %}science{% elif 'social' in interest.name|lower or 'humain' in interest.name|lower or 'éducation' in interest.name|lower %}social{% else %}autre{% endif %}">
+                                <label class="form-label fw-bold">{{ interest.name }}</label>
+                                <div class="d-flex justify-content-between flex-wrap">
+                                    {% for level, description in interest_levels %}
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="interest_{{ interest.id }}" id="interest_{{ interest.id }}_{{ level }}" value="{{ level }}" {% if existing_interest_evals|get_item:interest.id == level %}checked{% endif %}>
+                                            <label class="form-check-label" for="interest_{{ interest.id }}_{{ level }}">
+                                                {{ level }} <small class="text-muted d-block">{{ description }}</small>
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-lg mt-4">Enregistrer mes évaluations</button>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-lg mt-4" id="submit-button" onclick="disableBeforeUnload()">Enregistrer mes évaluations</button>
+                <a href="{% url 'profiles:profile-detail' %}" class="btn btn-outline-secondary btn-lg mt-4 ms-3">Annuler</a>
+            </div>
         </form>
     </div>
 </div>
+
+<!-- Bouton flottant pour aller au bouton de validation -->
+<div class="floating-scroll-buttons">
+    <!-- Bouton pour aller en bas (vers le bouton valider) -->
+    <button type="button" class="btn btn-primary btn-floating" id="scroll-to-submit" title="Aller au bouton de validation">
+        <i class="bi bi-arrow-down-circle-fill"></i>
+        <span class="btn-text">Valider</span>
+    </button>
+    
+    <!-- Bouton pour remonter en haut -->
+    <button type="button" class="btn btn-secondary btn-floating" id="scroll-to-top" title="Retour en haut" style="display: none;">
+        <i class="bi bi-arrow-up-circle-fill"></i>
+        <span class="btn-text">Haut</span>
+    </button>
+</div>
+
+<style>
+/* Styles pour les boutons flottants */
+.floating-scroll-buttons {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-floating {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    border: none;
+    font-size: 1.2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-floating:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-floating .btn-text {
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 2px;
+    line-height: 1;
+}
+
+.btn-floating i {
+    font-size: 1.5rem;
+    margin-bottom: 2px;
+}
+
+/* Animation de pulsation pour attirer l'attention */
+.btn-floating.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    50% {
+        box-shadow: 0 4px 12px rgba(111, 66, 193, 0.4);
+        transform: scale(1.05);
+    }
+    100% {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+    .floating-scroll-buttons {
+        right: 15px;
+        bottom: 15px;
+    }
+    
+    .btn-floating {
+        width: 50px;
+        height: 50px;
+        font-size: 1rem;
+    }
+    
+    .btn-floating .btn-text {
+        font-size: 0.6rem;
+    }
+    
+    .btn-floating i {
+        font-size: 1.2rem;
+    }
+}
+
+/* Masquer les boutons lors de l'impression */
+@media print {
+    .floating-scroll-buttons {
+        display: none !important;
+    }
+}
+</style>
+
+<script>
+// Fonction de filtrage pour les compétences
+function filterSkills() {
+    const searchTerm = document.getElementById('skill-search').value.toLowerCase();
+    const categoryFilter = document.getElementById('skill-filter').value;
+    const skillItems = document.querySelectorAll('.skill-item');
+    let visibleCount = 0;
+
+    skillItems.forEach(item => {
+        const skillName = item.getAttribute('data-skill-name');
+        const skillCategory = item.getAttribute('data-skill-category');
+        
+        const matchesSearch = skillName.includes(searchTerm);
+        const matchesCategory = !categoryFilter || skillCategory === categoryFilter;
+        
+        if (matchesSearch && matchesCategory) {
+            item.style.display = 'block';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('skill-count').textContent = `${visibleCount} compétence(s) affichée(s)`;
+}
+
+// Fonction de filtrage pour les intérêts
+function filterInterests() {
+    const searchTerm = document.getElementById('interest-search').value.toLowerCase();
+    const categoryFilter = document.getElementById('interest-filter').value;
+    const interestItems = document.querySelectorAll('.interest-item');
+    let visibleCount = 0;
+
+    interestItems.forEach(item => {
+        const interestName = item.getAttribute('data-interest-name');
+        const interestCategory = item.getAttribute('data-interest-category');
+        
+        const matchesSearch = interestName.includes(searchTerm);
+        const matchesCategory = !categoryFilter || interestCategory === categoryFilter;
+        
+        if (matchesSearch && matchesCategory) {
+            item.style.display = 'block';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('interest-count').textContent = `${visibleCount} centre(s) d'intérêt affiché(s)`;
+}
+
+// Fonctions pour effacer les filtres
+function clearSkillFilters() {
+    document.getElementById('skill-search').value = '';
+    document.getElementById('skill-filter').value = '';
+    filterSkills();
+}
+
+function clearInterestFilters() {
+    document.getElementById('interest-search').value = '';
+    document.getElementById('interest-filter').value = '';
+    filterInterests();
+}
+
+// Fonction pour calculer et mettre à jour la progression
+function updateProgress() {
+    const allRadios = document.querySelectorAll('input[type="radio"]');
+    const checkedRadios = document.querySelectorAll('input[type="radio"]:checked');
+    
+    // Calculer le nombre total de questions (compétences + intérêts)
+    const skillQuestions = document.querySelectorAll('.skill-item').length;
+    const interestQuestions = document.querySelectorAll('.interest-item').length;
+    const totalQuestions = skillQuestions + interestQuestions;
+    
+    // Calculer le nombre de réponses données
+    const answeredQuestions = checkedRadios.length;
+    
+    // Calculer le pourcentage
+    const percentage = totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0;
+    
+    // Mettre à jour l'interface
+    const progressBar = document.getElementById('completion-progress');
+    const badge = document.getElementById('completion-badge');
+    const text = document.getElementById('completion-text');
+    
+    progressBar.style.width = percentage + '%';
+    badge.textContent = percentage + '% complété';
+    
+    // Texte contextuel selon la progression
+    if (percentage === 0) {
+        text.textContent = 'Commencez à évaluer vos compétences et intérêts';
+        progressBar.className = 'progress-bar';
+    } else if (percentage < 25) {
+        text.textContent = `Bon début ! ${answeredQuestions}/${totalQuestions} questions répondues`;
+        progressBar.className = 'progress-bar bg-danger';
+    } else if (percentage < 50) {
+        text.textContent = `Continuez ! ${answeredQuestions}/${totalQuestions} questions répondues`;
+        progressBar.className = 'progress-bar bg-warning';
+    } else if (percentage < 75) {
+        text.textContent = `Très bien ! ${answeredQuestions}/${totalQuestions} questions répondues`;
+        progressBar.className = 'progress-bar bg-info';
+    } else if (percentage < 100) {
+        text.textContent = `Presque fini ! ${answeredQuestions}/${totalQuestions} questions répondues`;
+        progressBar.className = 'progress-bar bg-primary';
+    } else {
+        text.textContent = `Parfait ! Toutes les questions sont répondues. Vous pouvez valider.`;
+        progressBar.className = 'progress-bar bg-success';
+        
+        // Faire clignoter le bouton de validation
+        const submitButton = document.getElementById('submit-button');
+        submitButton.classList.add('pulse');
+    }
+    
+    // Mettre à jour le bouton flottant selon la progression
+    const scrollToSubmitBtn = document.getElementById('scroll-to-submit');
+    if (percentage >= 100) {
+        scrollToSubmitBtn.innerHTML = `
+            <i class="bi bi-check-circle-fill"></i>
+            <span class="btn-text">Valider</span>
+        `;
+        scrollToSubmitBtn.classList.add('pulse');
+    } else {
+        scrollToSubmitBtn.innerHTML = `
+            <i class="bi bi-arrow-down-circle-fill"></i>
+            <span class="btn-text">Valider</span>
+        `;
+        scrollToSubmitBtn.classList.remove('pulse');
+    }
+}
+function clearSkillFilters() {
+    document.getElementById('skill-search').value = '';
+    document.getElementById('skill-filter').value = '';
+    filterSkills();
+}
+
+function clearInterestFilters() {
+    document.getElementById('interest-search').value = '';
+    document.getElementById('interest-filter').value = '';
+    filterInterests();
+}
+
+// Fonctions de navigation (scroll)
+function scrollToSubmit() {
+    const submitButton = document.getElementById('submit-button');
+    submitButton.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+    });
+    
+    // Effet de mise en évidence du bouton
+    submitButton.style.animation = 'pulse 1s ease-in-out 2';
+    setTimeout(() => {
+        submitButton.style.animation = '';
+    }, 2000);
+}
+
+function scrollToTop() {
+    window.scrollTo({ 
+        top: 0, 
+        behavior: 'smooth' 
+    });
+}
+
+// Gestion de l'affichage des boutons flottants selon la position de scroll
+function handleScrollButtons() {
+    const scrollToSubmitBtn = document.getElementById('scroll-to-submit');
+    const scrollToTopBtn = document.getElementById('scroll-to-top');
+    const submitButton = document.getElementById('submit-button');
+    
+    const scrollPosition = window.scrollY;
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+    const submitButtonPosition = submitButton.offsetTop;
+    
+    // Afficher le bouton "Valider" si on n'est pas près du bouton de soumission
+    if (scrollPosition + windowHeight < submitButtonPosition - 100) {
+        scrollToSubmitBtn.style.display = 'flex';
+        scrollToSubmitBtn.classList.add('pulse'); // Animation d'attention
+    } else {
+        scrollToSubmitBtn.style.display = 'none';
+        scrollToSubmitBtn.classList.remove('pulse');
+    }
+    
+    // Afficher le bouton "Haut" si on a scrollé vers le bas
+    if (scrollPosition > 300) {
+        scrollToTopBtn.style.display = 'flex';
+    } else {
+        scrollToTopBtn.style.display = 'none';
+    }
+}
+
+// Événements pour le filtrage en temps réel et la navigation
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtrage
+    document.getElementById('skill-search').addEventListener('input', filterSkills);
+    document.getElementById('skill-filter').addEventListener('change', filterSkills);
+    document.getElementById('interest-search').addEventListener('input', filterInterests);
+    document.getElementById('interest-filter').addEventListener('change', filterInterests);
+    
+    // Navigation
+    document.getElementById('scroll-to-submit').addEventListener('click', scrollToSubmit);
+    document.getElementById('scroll-to-top').addEventListener('click', scrollToTop);
+    
+    // Gestion du scroll
+    window.addEventListener('scroll', handleScrollButtons);
+    
+    // Progression du questionnaire
+    const radioButtons = document.querySelectorAll('input[type="radio"]');
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', updateProgress);
+    });
+    
+    // Vérification initiale
+    handleScrollButtons();
+    updateProgress();
+    
+    // Ajouter un indicateur de progression de scroll
+    const progressIndicator = document.createElement('div');
+    progressIndicator.innerHTML = `
+        <div class="progress-indicator">
+            <div class="progress-bar-custom" id="scroll-progress"></div>
+        </div>
+    `;
+    document.body.appendChild(progressIndicator);
+    
+    // Styles pour l'indicateur de progression
+    const progressStyles = document.createElement('style');
+    progressStyles.textContent = `
+        .progress-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+        }
+        
+        .progress-bar-custom {
+            height: 100%;
+            background: linear-gradient(90deg, #6f42c1, #a98eda);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+    `;
+    document.head.appendChild(progressStyles);
+    
+    // Mise à jour de la barre de progression de scroll
+    window.addEventListener('scroll', function() {
+        const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+        document.getElementById('scroll-progress').style.width = scrolled + '%';
+    });
+    
+    // Variable pour contrôler l'avertissement beforeunload
+    let allowNavigation = false;
+    
+    // Fonction pour désactiver l'avertissement (appelée lors de la soumission)
+    window.disableBeforeUnload = function() {
+        allowNavigation = true;
+    };
+    
+    // Avertissement avant de quitter si le questionnaire n'est pas terminé
+    window.addEventListener('beforeunload', function(e) {
+        // Ne pas bloquer si la navigation est autorisée
+        if (allowNavigation) {
+            return;
+        }
+        
+        // Vérifier si on est toujours sur la page du questionnaire
+        if (!document.getElementById('skills-container') || !document.getElementById('interests-container')) {
+            return; // Ne pas bloquer si on n'est plus sur la page questionnaire
+        }
+        
+        const checkedRadios = document.querySelectorAll('input[type="radio"]:checked');
+        const totalQuestions = document.querySelectorAll('.skill-item').length + document.querySelectorAll('.interest-item').length;
+        
+        // Seulement avertir s'il y a des réponses partielles
+        if (checkedRadios.length > 0 && checkedRadios.length < totalQuestions) {
+            const message = 'Vous avez des réponses non sauvegardées. Êtes-vous sûr de vouloir quitter ?';
+            e.returnValue = message;
+            return message;
+        }
+    });
+});
+</script>
+
 {% endblock %}

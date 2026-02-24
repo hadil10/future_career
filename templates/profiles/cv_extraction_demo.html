@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Démonstration - Extraction CV avec IA{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold">
+                    <i class="bi bi-robot text-primary me-3"></i>
+                    Extraction CV avec IA
+                </h1>
+                <p class="lead text-muted">
+                    Notre système d'intelligence artificielle analyse automatiquement votre CV pour extraire vos compétences, expériences et recommander les meilleurs emplois.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Fonctionnalités -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-file-earmark-text text-primary" style="font-size: 3rem;"></i>
+                    <h5 class="card-title mt-3">Analyse automatique</h5>
+                    <p class="card-text">
+                        L'IA lit votre CV (PDF, DOCX) et extrait automatiquement toutes les informations importantes.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-gear-fill text-success" style="font-size: 3rem;"></i>
+                    <h5 class="card-title mt-3">Compétences détectées</h5>
+                    <p class="card-text">
+                        Identification automatique de vos compétences techniques, linguistiques et managériales.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-lightbulb-fill text-warning" style="font-size: 3rem;"></i>
+                    <h5 class="card-title mt-3">Recommandations personnalisées</h5>
+                    <p class="card-text">
+                        Génération de recommandations d'emploi basées sur votre profil et vos expériences.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Exemple de données extraites -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">Exemple de données extraites</h2>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person me-2"></i>
+                        Informations personnelles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><strong>Nom :</strong> Jean Dupont</li>
+                        <li><strong>Email :</strong> jean.dupont@email.com</li>
+                        <li><strong>Téléphone :</strong> +33 6 12 34 56 78</li>
+                        <li><strong>Localisation :</strong> Paris, France</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-gear me-2"></i>
+                        Compétences détectées
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-primary rounded-pill">Python</span>
+                        <span class="badge bg-primary rounded-pill">Django</span>
+                        <span class="badge bg-primary rounded-pill">JavaScript</span>
+                        <span class="badge bg-primary rounded-pill">React</span>
+                        <span class="badge bg-primary rounded-pill">SQL</span>
+                        <span class="badge bg-primary rounded-pill">Git</span>
+                        <span class="badge bg-primary rounded-pill">Docker</span>
+                        <span class="badge bg-primary rounded-pill">AWS</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comment ça marche -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">Comment ça marche ?</h2>
+        </div>
+        <div class="col-md-3 text-center">
+            <div class="mb-3">
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                    <span class="fw-bold fs-4">1</span>
+                </div>
+            </div>
+            <h5>Téléchargez votre CV</h5>
+            <p class="text-muted">Formats supportés : PDF, DOCX, DOC</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <div class="mb-3">
+                <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                    <span class="fw-bold fs-4">2</span>
+                </div>
+            </div>
+            <h5>Analyse automatique</h5>
+            <p class="text-muted">L'IA extrait toutes les informations importantes</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <div class="mb-3">
+                <div class="bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                    <span class="fw-bold fs-4">3</span>
+                </div>
+            </div>
+            <h5>Enrichissement du profil</h5>
+            <p class="text-muted">Vos compétences sont ajoutées automatiquement</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <div class="mb-3">
+                <div class="bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                    <span class="fw-bold fs-4">4</span>
+                </div>
+            </div>
+            <h5>Recommandations</h5>
+            <p class="text-muted">Offres d'emploi personnalisées basées sur votre profil</p>
+        </div>
+    </div>
+    
+    <!-- Call to action -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-gradient text-white text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body py-5">
+                    <h3 class="fw-bold mb-3">Prêt à essayer ?</h3>
+                    <p class="lead mb-4">
+                        Téléchargez votre CV et laissez notre IA vous trouver les meilleures opportunités !
+                    </p>
+                    {% if user.is_authenticated and user.user_type == 'student' %}
+                        <a href="{% url 'profiles:cv-extraction-status' %}" class="btn btn-light btn-lg">
+                            <i class="bi bi-robot me-2"></i>
+                            Commencer l'extraction
+                        </a>
+                    {% else %}
+                        <a href="{% url 'user:signup' %}" class="btn btn-light btn-lg">
+                            <i class="bi bi-person-plus me-2"></i>
+                            Créer un compte étudiant
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

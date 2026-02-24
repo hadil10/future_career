@@ -1,0 +1,186 @@
+<!-- Template de pagination réutilisable -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="Navigation des pages" class="mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="pagination-info">
+            <small class="text-muted">
+                Affichage de {{ page_obj.start_index }} à {{ page_obj.end_index }} 
+                sur {{ page_obj.paginator.count }} résultat{{ page_obj.paginator.count|pluralize }}
+            </small>
+        </div>
+        <div class="pagination-summary">
+            <small class="text-muted">
+                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+            </small>
+        </div>
+    </div>
+    
+    <ul class="pagination justify-content-center">
+        <!-- Bouton Première page -->
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="Première page">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
+        {% endif %}
+        
+        <!-- Bouton Page précédente -->
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="Page précédente">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">
+                    <i class="bi bi-chevron-left"></i>
+                </span>
+            </li>
+        {% endif %}
+        
+        <!-- Numéros de pages -->
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">{{ num }}</a>
+                </li>
+            {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">{{ num }}</a>
+                </li>
+            {% elif num == page_obj.number|add:'-4' or num == page_obj.number|add:'4' %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        <!-- Bouton Page suivante -->
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="Page suivante">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">
+                    <i class="bi bi-chevron-right"></i>
+                </span>
+            </li>
+        {% endif %}
+        
+        <!-- Bouton Dernière page -->
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="Dernière page">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+    
+    <!-- Navigation rapide -->
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text">Aller à la page</span>
+                <input type="number" class="form-control" id="goto-page" min="1" max="{{ page_obj.paginator.num_pages }}" placeholder="{{ page_obj.number }}" data-max-pages="{{ page_obj.paginator.num_pages }}">
+                <button class="btn btn-outline-secondary" type="button" onclick="gotoPage()">
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <select class="form-select form-select-sm" onchange="changePageSize(this.value)">
+                <option value="">Éléments par page</option>
+                <option value="5">5 par page</option>
+                <option value="10">10 par page</option>
+                <option value="15">15 par page</option>
+                <option value="25">25 par page</option>
+                <option value="50">50 par page</option>
+            </select>
+        </div>
+    </div>
+</nav>
+
+<script>
+function gotoPage() {
+    const pageInput = document.getElementById('goto-page');
+    const pageNum = pageInput.value;
+    const maxPages = parseInt(pageInput.getAttribute('data-max-pages'));
+    
+    if (pageNum && pageNum >= 1 && pageNum <= maxPages) {
+        const url = new URL(window.location);
+        url.searchParams.set('page', pageNum);
+        window.location.href = url.toString();
+    } else {
+        alert('Veuillez entrer un numéro de page valide (1-' + maxPages + ')');
+    }
+}
+
+function changePageSize(size) {
+    if (size) {
+        const url = new URL(window.location);
+        url.searchParams.set('per_page', size);
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
+    }
+}
+
+// Permettre la navigation avec la touche Entrée
+document.addEventListener('DOMContentLoaded', function() {
+    const gotoPageInput = document.getElementById('goto-page');
+    if (gotoPageInput) {
+        gotoPageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                gotoPage();
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.pagination .page-link {
+    color: #6f42c1;
+    border-color: #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+}
+
+.pagination .page-link:hover {
+    color: #5a32a3;
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.pagination-info, .pagination-summary {
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .pagination {
+        flex-wrap: wrap;
+    }
+    
+    .pagination .page-item {
+        margin: 2px;
+    }
+    
+    .pagination-info, .pagination-summary {
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+{% endif %}

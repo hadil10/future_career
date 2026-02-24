@@ -1,0 +1,48 @@
+
+    Jean Dupont
+    jean.dupont@email.com
+    +33 6 12 34 56 78
+    Paris, France
+    
+    EXPÉRIENCE PROFESSIONNELLE
+    
+    Développeur Python - TechCorp (2022-2024)
+    - Développement d'applications web avec Django
+    - Gestion de bases de données PostgreSQL
+    - Collaboration en équipe agile
+    
+    Stagiaire Développeur - StartupXYZ (2021)
+    - Création d'interfaces utilisateur avec React
+    - Tests unitaires et intégration continue
+    
+    FORMATION
+    
+    Master Informatique - Université de Paris (2022)
+    Licence Informatique - Université de Lyon (2020)
+    
+    COMPÉTENCES
+    
+    - Python, Django, Flask
+    - JavaScript, React, Node.js
+    - SQL, PostgreSQL, MongoDB
+    - Git, Docker, AWS
+    - Méthodes agiles, Scrum
+    
+    LANGUES
+    
+    - Français: Natif
+    - Anglais: Courant
+    - Espagnol: Intermédiaire
+    
+    PROJETS
+    
+    Site e-commerce (2023)
+    - Développement complet avec Django et React
+    - Intégration de paiements Stripe
+    - Déploiement sur AWS
+    
+    CERTIFICATIONS
+    
+    - AWS Certified Developer (2023)
+    - Scrum Master Certified (2022)
+    

@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+
+{% block title %}Recherche CV Intelligente{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-file-earmark-person me-2"></i>
+                Recherche Basée sur votre CV
+            </h1>
+            <p class="lead text-muted">
+                Recherche intelligente d'offres d'emploi basée sur les données extraites de votre CV
+            </p>
+        </div>
+    </div>
+
+    <!-- Analyse CV -->
+    {% if cv_analysis.has_cv_data %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Analyse de votre CV
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-tools me-2"></i>Compétences principales</h6>
+                            {% if cv_analysis.skills_from_cv %}
+                                <div class="mb-3">
+                                    {% for skill in cv_analysis.skills_from_cv|slice:":5" %}
+                                        <span class="badge bg-primary me-1 mb-1">{{ skill }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Aucune compétence détectée</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-briefcase me-2"></i>Niveau d'expérience</h6>
+                            <span class="badge bg-info fs-6">{{ cv_analysis.experience_level|capfirst }}</span>
+                            
+                            {% if cv_analysis.work_experience %}
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    {{ cv_analysis.work_experience|length }} expérience(s) détectée(s)
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if search_strategy %}
+                    <div class="mt-3">
+                        <h6><i class="bi bi-strategy me-2"></i>Stratégie de recherche</h6>
+                        <p class="text-muted mb-0">{{ search_strategy }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Aucune donnée CV détectée</strong><br>
+                Pour une recherche optimisée, veuillez d'abord 
+                <a href="{% url 'profiles:profile-update' %}">télécharger votre CV</a> et 
+                <a href="{% url 'profiles:extract-cv-data' %}">lancer l'extraction des données</a>.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Filtres de recherche -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-6">
+                            <label for="location" class="form-label">Localisation</label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   value="{{ location }}" placeholder="Paris, Lyon, Tunis, Remote...">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="linkedin" class="form-label">Source de recherche</label>
+                            <select class="form-select" id="linkedin" name="linkedin">
+                                <option value="false" {% if not search_linkedin %}selected{% endif %}>
+                                    Toutes les sources (JSearch)
+                                </option>
+                                <option value="true" {% if search_linkedin %}selected{% endif %}>
+                                    LinkedIn uniquement
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search me-1"></i>
+                                Rechercher
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Bouton de diagnostic -->
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <button type="button" class="btn btn-outline-info btn-sm" onclick="runDiagnostic()">
+                                <i class="bi bi-gear me-1"></i>
+                                Diagnostic (si pas de résultats)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Résultats -->
+    {% if search_performed %}
+        {% if total_results > 0 %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong>{{ total_results }} offre(s) trouvée(s)</strong>
+                    {% if search_linkedin %}
+                        ({{ linkedin_count }} offres LinkedIn)
+                    {% else %}
+                        (recherche multi-sources)
+                    {% endif %}
+                    {% if used_default_location %}
+                        <br><small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Recherche élargie à la France (aucune localisation spécifiée)
+                        </small>
+                    {% endif %}
+                    {% if total_results < 5 %}
+                        <br><small class="text-info">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Résultats limités par la charge du serveur. Réessayez plus tard pour plus d'offres.
+                        </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+        {% for job in jobs %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm {% if job.is_linkedin %}border-info{% else %}border-primary{% endif %}">
+                    <div class="card-header {% if job.is_linkedin %}bg-info{% else %}bg-primary{% endif %} text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small>
+                                {% if job.is_linkedin %}
+                                    <i class="bi bi-linkedin me-1"></i>
+                                    LinkedIn
+                                {% else %}
+                                    <i class="bi bi-globe me-1"></i>
+                                    {{ job.external_job.source|capfirst }}
+                                {% endif %}
+                            </small>
+                            <span class="badge bg-light {% if job.is_linkedin %}text-info{% else %}text-primary{% endif %}">
+                                {{ job.compatibility_score|floatformat:0 }}%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ job.external_job.title }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">
+                            <i class="bi bi-building me-1"></i>
+                            {{ job.external_job.company_name }}
+                        </h6>
+                        
+                        {% if job.external_job.location %}
+                        <div class="mb-3">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill">
+                                <i class="bi bi-geo-alt-fill me-1"></i>
+                                {{ job.external_job.location }}
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        <p class="card-text text-muted small flex-grow-1">
+                            {{ job.external_job.description|truncatewords:20 }}
+                        </p>
+                        
+                        <div class="mb-3">
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar {% if job.is_linkedin %}bg-info{% else %}bg-primary{% endif %}" 
+                                     role="progressbar" style="width: {{ job.compatibility_score }}%"></div>
+                            </div>
+                            <small class="text-muted">Compatibilité CV</small>
+                        </div>
+                        
+                        <div class="btn-group w-100">
+                            <a href="{% url 'profiles:external-job-detail' job.external_job.id %}" 
+                               class="btn btn-outline-{% if job.is_linkedin %}info{% else %}primary{% endif %}">
+                                Détails
+                            </a>
+                            <a href="{{ job.external_job.external_url }}" 
+                               target="_blank" class="btn btn-{% if job.is_linkedin %}info{% else %}primary{% endif %}">
+                                Postuler
+                                <i class="bi bi-box-arrow-up-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% include 'includes/pagination.html' %}
+
+        {% else %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="card text-center">
+                        <div class="card-body py-5">
+                            <i class="bi bi-search display-1 text-muted mb-3"></i>
+                            <h3 class="card-title">Aucune offre trouvée</h3>
+                            <p class="card-text text-muted">
+                                Aucune offre ne correspond à votre profil CV pour cette recherche.
+                            </p>
+                            <div class="mt-4">
+                                <a href="{% url 'profiles:ai-job-search' %}" class="btn btn-primary me-2">
+                                    <i class="bi bi-search me-1"></i>
+                                    Recherche classique
+                                </a>
+                                <a href="{% url 'profiles:ai-career-guidance' %}" class="btn btn-outline-primary">
+                                    <i class="bi bi-compass me-1"></i>
+                                    Conseils de carrière
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <!-- Message d'accueil sans recherche -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card text-center">
+                    <div class="card-body py-5">
+                        <i class="bi bi-file-earmark-person display-1 text-primary mb-3"></i>
+                        <h3 class="card-title">Recherche Intelligente basée sur votre CV</h3>
+                        <p class="card-text text-muted">
+                            Notre IA analyse votre CV pour trouver les offres d'emploi les plus pertinentes.
+                            {% if has_cv_data %}
+                                Votre CV a été analysé et vos compétences ont été extraites.
+                            {% else %}
+                                Téléchargez d'abord votre CV pour une recherche optimisée.
+                            {% endif %}
+                        </p>
+                        
+                        {% if not has_cv_data %}
+                        <div class="mt-4">
+                            <a href="{% url 'profiles:profile-update' %}" class="btn btn-primary me-2">
+                                <i class="bi bi-upload me-1"></i>
+                                Télécharger mon CV
+                            </a>
+                            <a href="{% url 'profiles:ai-job-search' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-search me-1"></i>
+                                Recherche classique
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="mt-4">
+                            <p class="text-muted mb-3">
+                                <i class="bi bi-lightbulb me-2"></i>
+                                Astuce : Spécifiez une localisation pour des résultats ciblés
+                            </p>
+                            <a href="{% url 'profiles:cv-extraction-status' %}" class="btn btn-outline-primary me-2">
+                                <i class="bi bi-file-earmark-check me-1"></i>
+                                Voir l'analyse CV
+                            </a>
+                            <a href="{% url 'profiles:ai-career-guidance' %}" class="btn btn-primary">
+                                <i class="bi bi-compass me-1"></i>
+                                Conseils de carrière
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.card.border-primary {
+    border-width: 2px !important;
+}
+
+.card.border-info {
+    border-width: 2px !important;
+}
+
+.card.border-success {
+    border-width: 2px !important;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+</style>
+
+<script>
+function runDiagnostic() {
+    const diagnosticInfo = {
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+        hasLocalStorage: typeof(Storage) !== "undefined",
+        cookiesEnabled: navigator.cookieEnabled,
+        screenResolution: screen.width + 'x' + screen.height,
+        viewportSize: window.innerWidth + 'x' + window.innerHeight
+    };
+    
+    let message = "🔍 DIAGNOSTIC TECHNIQUE\n\n";
+    message += "Si vous ne voyez pas les résultats de recherche :\n\n";
+    message += "✅ SOLUTIONS IMMÉDIATES :\n";
+    message += "1. Appuyez sur Ctrl+F5 (rechargement forcé)\n";
+    message += "2. Essayez en mode navigation privée\n";
+    message += "3. Désactivez les bloqueurs de publicité\n";
+    message += "4. Videz le cache du navigateur\n\n";
+    message += "📊 INFORMATIONS TECHNIQUES :\n";
+    message += `Navigateur: ${diagnosticInfo.userAgent.split(' ')[0]}\n`;
+    message += `Résolution: ${diagnosticInfo.screenResolution}\n`;
+    message += `Cookies: ${diagnosticInfo.cookiesEnabled ? 'Activés' : 'Désactivés'}\n`;
+    message += `LocalStorage: ${diagnosticInfo.hasLocalStorage ? 'Disponible' : 'Indisponible'}\n\n`;
+    message += "🎯 Le système fonctionne correctement.\n";
+    message += "Le problème est probablement lié au cache du navigateur.\n\n";
+    message += "Voulez-vous recharger la page maintenant ?";
+    
+    if (confirm(message)) {
+        // Rechargement forcé avec cache-busting
+        window.location.href = window.location.href + (window.location.href.includes('?') ? '&' : '?') + '_cb=' + Date.now();
+    }
+}
+
+// Auto-diagnostic si aucun résultat affiché après recherche
+document.addEventListener('DOMContentLoaded', function() {
+    const searchPerformed = {{ search_performed|yesno:"true,false" }};
+    const totalResults = {{ total_results|default:0 }};
+    const jobCards = document.querySelectorAll('.card.h-100.shadow-sm').length;
+    
+    // Si recherche effectuée mais aucune carte visible
+    if (searchPerformed && totalResults > 0 && jobCards === 0) {
+        setTimeout(function() {
+            if (confirm('🚨 PROBLÈME DÉTECTÉ\n\nLa recherche a trouvé des résultats mais ils ne s\'affichent pas.\nCeci est probablement dû au cache du navigateur.\n\nVoulez-vous recharger la page avec un cache forcé ?')) {
+                window.location.reload(true);
+            }
+        }, 2000);
+    }
+});
+</script>
+{% endblock %}

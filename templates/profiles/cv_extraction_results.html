@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% block title %}Extraction CV - Compétences et Formations{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    Extraction CV - Compétences et Formations
+                </h1>
+                <div>
+                    <span class="badge bg-success fs-6">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Extraction réussie ({{ extraction.extraction_confidence|floatformat:0 }}% confiance)
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Résumé de l'extraction -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center border-primary">
+                <div class="card-body">
+                    <i class="bi bi-gear-fill text-primary fs-1"></i>
+                    <h5 class="card-title">{{ extraction.extracted_skills|length }}</h5>
+                    <p class="card-text text-muted">Compétences techniques</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center border-info">
+                <div class="card-body">
+                    <i class="bi bi-mortarboard-fill text-info fs-1"></i>
+                    <h5 class="card-title">{{ extraction.extracted_educations|length }}</h5>
+                    <p class="card-text text-muted">Formations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <i class="bi bi-lightbulb-fill text-success fs-1"></i>
+                    <h5 class="card-title">{{ recommendations|length }}</h5>
+                    <p class="card-text text-muted">Recommandations</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Compétences techniques extraites -->
+            {% if extraction.extracted_skills %}
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-gear me-2"></i>
+                        Compétences techniques détectées
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for skill in extraction.extracted_skills %}
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                                <div>
+                                    <strong>{{ skill.skill }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ skill.category }}</small>
+                                </div>
+                                <div>
+                                    {% if skill.level == "Expert" %}
+                                        <span class="badge bg-success">{{ skill.level }}</span>
+                                    {% elif skill.level == "Avancé" %}
+                                        <span class="badge bg-info">{{ skill.level }}</span>
+                                    {% elif skill.level == "Intermédiaire" %}
+                                        <span class="badge bg-warning">{{ skill.level }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ skill.level }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-3 p-3 bg-light rounded">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Ces compétences ont été automatiquement ajoutées à votre profil et seront utilisées pour les recommandations d'emploi.
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Formations extraites -->
+            {% if extraction.extracted_educations %}
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-mortarboard me-2"></i>
+                        Formations détectées
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for education in extraction.extracted_educations %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h6 class="mb-1">{{ education.degree }}</h6>
+                                <p class="text-muted mb-1">
+                                    <i class="bi bi-building me-1"></i>
+                                    {{ education.school }}
+                                </p>
+                                <small class="text-muted">
+                                    <i class="bi bi-book me-1"></i>
+                                    {{ education.field }}
+                                </small>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <span class="badge bg-secondary fs-6">{{ education.year }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Message si aucune donnée -->
+            {% if not extraction.extracted_skills and not extraction.extracted_educations %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-exclamation-triangle display-1 text-warning mb-3"></i>
+                    <h4>Aucune compétence ou formation détectée</h4>
+                    <p class="text-muted">
+                        L'extraction n'a pas pu identifier de compétences techniques ou de formations dans votre CV.
+                        Cela peut être dû à :
+                    </p>
+                    <ul class="list-unstyled text-muted">
+                        <li>• Format de CV non standard</li>
+                        <li>• Qualité du scan/PDF</li>
+                        <li>• Langue non reconnue</li>
+                    </ul>
+                    <div class="mt-4">
+                        <a href="{% url 'profiles:questionnaire' %}" class="btn btn-primary me-2">
+                            <i class="bi bi-pencil me-1"></i>
+                            Compléter manuellement
+                        </a>
+                        <a href="{% url 'profiles:profile-update' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-upload me-1"></i>
+                            Télécharger un autre CV
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Actions rapides -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightning me-2"></i>
+                        Actions recommandées
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'profiles:cv-based-job-search' %}" class="btn btn-success">
+                            <i class="bi bi-search me-1"></i>
+                            Recherche basée sur le CV
+                        </a>
+                        <a href="{% url 'profiles:ai-job-search' %}" class="btn btn-primary">
+                            <i class="bi bi-robot me-1"></i>
+                            Recherche IA
+                        </a>
+                        <a href="{% url 'profiles:questionnaire' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-gear me-1"></i>
+                            Compléter le profil
+                        </a>
+                        <a href="{% url 'profiles:profile-detail' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-person me-1"></i>
+                            Voir mon profil
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommandations d'emploi -->
+            {% if recommendations %}
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        Recommandations d'emploi
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for recommendation in recommendations %}
+                    <div class="border-bottom pb-2 mb-2">
+                        <h6 class="mb-1">{{ recommendation.title }}</h6>
+                        <small class="text-muted">{{ recommendation.match_reason }}</small>
+                        <div class="mt-1">
+                            <span class="badge bg-success">{{ recommendation.confidence|floatformat:0 }}% match</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Boutons d'action -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{% url 'profiles:cv-based-job-search' %}" class="btn btn-success btn-lg me-3">
+                <i class="bi bi-search me-2"></i>
+                Rechercher des offres avec ce CV
+            </a>
+            <a href="{% url 'profiles:profile-detail' %}" class="btn btn-outline-primary btn-lg">
+                <i class="bi bi-arrow-left me-2"></i>
+                Retour au profil
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.card.border-primary {
+    border-width: 2px !important;
+}
+.card.border-info {
+    border-width: 2px !important;
+}
+.card.border-success {
+    border-width: 2px !important;
+}
+</style>
+{% endblock %}

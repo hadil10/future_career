@@ -10,4 +10,4 @@ def create_company_profile(sender, instance, created, **kwargs):
     de type 'company'.
     """
     if created and instance.user_type == 'company':
-        Company.objects.create(user=instance,name=f"Profil de {instance.username}")
+        Company.objects.create(user=instance, name=f"Profil de {instance.username}")

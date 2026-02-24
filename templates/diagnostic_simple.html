@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}Diagnostic IA Simple{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3>🔍 Diagnostic des Icônes IA</h3>
+                </div>
+                <div class="card-body">
+                    <!-- État utilisateur -->
+                    <div class="alert {% if user.is_authenticated and user.user_type == 'student' %}alert-success{% elif user.is_authenticated %}alert-warning{% else %}alert-danger{% endif %}">
+                        <h5>État de l'utilisateur :</h5>
+                        <ul class="mb-0">
+                            <li><strong>Connecté :</strong> 
+                                {% if user.is_authenticated %}
+                                    ✅ Oui ({{ user.username }})
+                                {% else %}
+                                    ❌ Non
+                                {% endif %}
+                            </li>
+                            {% if user.is_authenticated %}
+                            <li><strong>Type :</strong> {{ user.user_type|capfirst }}</li>
+                            <li><strong>Email :</strong> {{ user.email }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <!-- Test des conditions -->
+                    {% if user.is_authenticated and user.user_type == 'student' %}
+                        <div class="alert alert-success">
+                            <h5>✅ Conditions remplies pour voir les icônes IA</h5>
+                            <p>Vous devriez voir les icônes IA sur cette page et les autres pages.</p>
+                        </div>
+
+                        <!-- Test visuel du menu IA -->
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h6>🧪 Test du Menu IA (Navigation)</h6>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Instructions :</strong> Regardez en haut de cette page dans la barre de navigation.</p>
+                                <p>Vous devriez voir un menu déroulant <span class="badge bg-success">IA</span> avec une icône robot 🤖</p>
+                                
+                                <!-- Reproduction du menu IA pour test -->
+                                <div class="border p-3 bg-light">
+                                    <p><strong>Aperçu du menu IA :</strong></p>
+                                    <div class="dropdown">
+                                        <a class="nav-link dropdown-toggle btn btn-success" href="#" id="testAiDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-robot"></i> IA (Test)
+                                        </a>
+                                        <ul class="dropdown-menu" aria-labelledby="testAiDropdown">
+                                            <li><a class="dropdown-item" href="{% url 'profiles:ai-dashboard' %}">
+                                                <i class="bi bi-speedometer2 me-2"></i>Tableau de bord IA
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="{% url 'profiles:ai-job-search' %}">
+                                                <i class="bi bi-search me-2"></i>Recherche intelligente
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="{% url 'profiles:ai-career-guidance' %}">
+                                                <i class="bi bi-compass me-2"></i>Conseils de carrière
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Test des boutons IA -->
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h6>🧪 Test des Boutons IA</h6>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Bouton de test :</strong></p>
+                                <button id="testAiBtn" class="btn btn-success" onclick="testAI()">
+                                    <i class="bi bi-robot me-2"></i>
+                                    Test Recherche IA
+                                </button>
+                                <div id="testResult" class="mt-3"></div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation vers les pages avec IA -->
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h6>🔗 Pages avec Icônes IA</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>Visitez ces pages pour voir les icônes IA :</p>
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <a href="{% url 'profiles:home' %}" class="btn btn-primary w-100">
+                                            <i class="bi bi-house me-2"></i>Page d'Accueil
+                                        </a>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <a href="{% url 'profiles:recommendations' %}" class="btn btn-primary w-100">
+                                            <i class="bi bi-lightbulb me-2"></i>Recommandations
+                                        </a>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <a href="{% url 'profiles:offer-list' %}" class="btn btn-primary w-100">
+                                            <i class="bi bi-briefcase me-2"></i>Liste des Offres
+                                        </a>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <a href="{% url 'profiles:ai-dashboard' %}" class="btn btn-success w-100">
+                                            <i class="bi bi-robot me-2"></i>Tableau de Bord IA
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    {% elif user.is_authenticated and user.user_type == 'company' %}
+                        <div class="alert alert-warning">
+                            <h5>⚠️ Compte Entreprise</h5>
+                            <p>Vous êtes connecté avec un compte entreprise. Les icônes IA pour étudiants ne sont pas visibles.</p>
+                            <p><strong>Solution :</strong> Connectez-vous avec un compte étudiant.</p>
+                            <a href="{% url 'user:logout' %}" class="btn btn-warning">Se Déconnecter</a>
+                        </div>
+
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <h5>❌ Non Connecté</h5>
+                            <p>Vous devez être connecté avec un compte étudiant pour voir les icônes IA.</p>
+                            <div class="mt-3">
+                                <a href="{% url 'user:login' %}" class="btn btn-primary me-2">Se Connecter</a>
+                                <a href="{% url 'user:signup' %}" class="btn btn-outline-primary">S'Inscrire</a>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Comptes de test -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6>👥 Comptes de Test Disponibles</h6>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Comptes étudiants (pour voir les icônes IA) :</strong></p>
+                            <ul>
+                                <li><code>admin1</code> - admin@futurecareer.com</li>
+                                <li><code>admin</code> - admin@gmail.com</li>
+                                <li><code>Testuser1</code></li>
+                                <li><code>hadilmansour1</code> - mansourhadil10@gmail.com</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Instructions de dépannage -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6>🔧 Si les icônes ne s'affichent pas</h6>
+                        </div>
+                        <div class="card-body">
+                            <ol>
+                                <li><strong>Videz le cache :</strong> Appuyez sur <kbd>Ctrl + F5</kbd></li>
+                                <li><strong>Vérifiez la console :</strong> Appuyez sur <kbd>F12</kbd> et cherchez des erreurs</li>
+                                <li><strong>Essayez un autre navigateur :</strong> Chrome, Firefox, Edge</li>
+                                <li><strong>Vérifiez votre connexion :</strong> Assurez-vous d'être connecté comme étudiant</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function testAI() {
+    const resultDiv = document.getElementById('testResult');
+    
+    // Test des éléments
+    const userAuth = {{ user.is_authenticated|yesno:"true,false" }};
+    const userType = '{{ user.user_type|default:"undefined" }}';
+    const bootstrapLoaded = typeof bootstrap !== 'undefined';
+    
+    // Test des icônes Bootstrap
+    const testIcon = document.createElement('i');
+    testIcon.className = 'bi bi-robot';
+    testIcon.style.position = 'absolute';
+    testIcon.style.left = '-9999px';
+    document.body.appendChild(testIcon);
+    
+    const iconStyle = window.getComputedStyle(testIcon);
+    const iconsLoaded = iconStyle.fontFamily.includes('bootstrap-icons') || 
+                       iconStyle.content !== 'none';
+    
+    document.body.removeChild(testIcon);
+    
+    // Résultats
+    let html = '<div class="alert alert-info"><h6>Résultats du Test :</h6><ul>';
+    html += `<li><strong>Utilisateur connecté :</strong> ${userAuth ? '✅' : '❌'}</li>`;
+    html += `<li><strong>Type utilisateur :</strong> ${userType}</li>`;
+    html += `<li><strong>Bootstrap JS :</strong> ${bootstrapLoaded ? '✅' : '❌'}</li>`;
+    html += `<li><strong>Bootstrap Icons :</strong> ${iconsLoaded ? '✅' : '❌'}</li>`;
+    html += '</ul>';
+    
+    const shouldShow = userAuth && userType === 'student';
+    if (shouldShow && bootstrapLoaded && iconsLoaded) {
+        html += '<div class="alert alert-success mt-2">🎉 Tout est correct ! Les icônes IA devraient être visibles.</div>';
+    } else {
+        html += '<div class="alert alert-warning mt-2">⚠️ Problème détecté. Vérifiez les points marqués ❌.</div>';
+    }
+    
+    html += '</div>';
+    resultDiv.innerHTML = html;
+    
+    console.log('Test IA:', { userAuth, userType, bootstrapLoaded, iconsLoaded, shouldShow });
+}
+
+// Log automatique
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🤖 Page de diagnostic chargée');
+    console.log('User info:', {
+        authenticated: {{ user.is_authenticated|yesno:"true,false" }},
+        type: '{{ user.user_type|default:"undefined" }}',
+        username: '{{ user.username|default:"undefined" }}'
+    });
+});
+</script>
+{% endblock %}

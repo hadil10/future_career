@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Visibilité IA{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center mb-4">🤖 Test de Visibilité des Icônes IA</h1>
+            
+            <!-- Statut utilisateur -->
+            <div class="alert {% if user.is_authenticated and user.user_type == 'student' %}alert-success{% else %}alert-warning{% endif %} mb-4">
+                <h5>État de l'utilisateur :</h5>
+                <ul class="mb-0">
+                    <li><strong>Connecté :</strong> {% if user.is_authenticated %}✅ Oui ({{ user.username }}){% else %}❌ Non{% endif %}</li>
+                    {% if user.is_authenticated %}
+                    <li><strong>Type :</strong> {{ user.user_type|capfirst }}</li>
+                    <li><strong>Email :</strong> {{ user.email }}</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            {% if user.is_authenticated and user.user_type == 'student' %}
+                <!-- Test des icônes IA -->
+                <div class="row">
+                    <!-- Test 1: Menu Navigation -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">🧪 Test 1: Menu Navigation</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Emplacement :</strong> Barre de navigation en haut</p>
+                                <p><strong>À chercher :</strong> Menu déroulant "IA" avec icône robot</p>
+                                <div class="alert alert-info">
+                                    <small>Regardez en haut de cette page dans la barre de navigation. Vous devriez voir un menu "IA" avec une icône robot 🤖</small>
+                                </div>
+                                <div class="text-center">
+                                    {% if user.user_type == 'student' %}
+                                        <span class="badge bg-success">✅ Visible pour les étudiants</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">❌ Non visible</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test 2: Bouton IA Recommandations -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">🧪 Test 2: Page Recommandations</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Emplacement :</strong> Page des recommandations</p>
+                                <p><strong>À chercher :</strong> Bouton vert "Recherche IA"</p>
+                                <div class="text-center mb-3">
+                                    <a href="{% url 'profiles:recommendations' %}" class="btn btn-primary">
+                                        Aller aux Recommandations
+                                    </a>
+                                </div>
+                                <div class="alert alert-info">
+                                    <small>Sur la page des recommandations, cherchez un bouton vert "Recherche IA" en haut à droite</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test 3: Bouton IA Accueil -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">🧪 Test 3: Page d'Accueil</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Emplacement :</strong> Section héros de la page d'accueil</p>
+                                <p><strong>À chercher :</strong> Bouton vert "Recherche IA"</p>
+                                <div class="text-center mb-3">
+                                    <a href="{% url 'profiles:home' %}" class="btn btn-primary">
+                                        Aller à l'Accueil
+                                    </a>
+                                </div>
+                                <div class="alert alert-info">
+                                    <small>Sur la page d'accueil, cherchez un bouton vert "Recherche IA" dans la section en haut</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test 4: Bouton IA Offres -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">🧪 Test 4: Page des Offres</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Emplacement :</strong> Options de tri</p>
+                                <p><strong>À chercher :</strong> Bouton "IA" dans les options</p>
+                                <div class="text-center mb-3">
+                                    <a href="{% url 'profiles:offer-list' %}" class="btn btn-primary">
+                                        Aller aux Offres
+                                    </a>
+                                </div>
+                                <div class="alert alert-info">
+                                    <small>Sur la page des offres, cherchez un bouton vert "IA" dans les options de tri</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test interactif -->
+                <div class="card mt-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">🎯 Test Interactif</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Cliquez sur ce bouton pour tester si les fonctionnalités IA fonctionnent :</p>
+                        <div class="text-center">
+                            <button id="testAiBtn" class="btn btn-success btn-lg" onclick="testAIFunctionality()">
+                                <i class="bi bi-robot me-2"></i>
+                                Tester les Fonctionnalités IA
+                            </button>
+                        </div>
+                        <div id="testResult" class="mt-3"></div>
+                    </div>
+                </div>
+
+                <!-- Accès direct aux pages IA -->
+                <div class="card mt-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">🔗 Accès Direct aux Pages IA</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Testez l'accès direct aux pages IA :</p>
+                        <div class="row">
+                            <div class="col-md-4 mb-2">
+                                <a href="{% url 'profiles:ai-dashboard' %}" class="btn btn-success w-100">
+                                    <i class="bi bi-speedometer2 me-2"></i>
+                                    Tableau de Bord IA
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <a href="{% url 'profiles:ai-job-search' %}" class="btn btn-success w-100">
+                                    <i class="bi bi-search me-2"></i>
+                                    Recherche Intelligente
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <a href="{% url 'profiles:ai-career-guidance' %}" class="btn btn-success w-100">
+                                    <i class="bi bi-compass me-2"></i>
+                                    Conseils de Carrière
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            {% elif user.is_authenticated and user.user_type == 'company' %}
+                <!-- Message pour les entreprises -->
+                <div class="alert alert-warning text-center">
+                    <h4>⚠️ Compte Entreprise Détecté</h4>
+                    <p>Vous êtes connecté avec un compte entreprise. Les icônes IA pour étudiants ne sont pas visibles.</p>
+                    <p><strong>Pour voir les icônes IA :</strong> Connectez-vous avec un compte étudiant</p>
+                    <div class="mt-3">
+                        <a href="{% url 'user:logout' %}" class="btn btn-warning me-2">Se Déconnecter</a>
+                        <a href="{% url 'user:login' %}" class="btn btn-primary">Changer de Compte</a>
+                    </div>
+                </div>
+
+            {% else %}
+                <!-- Message pour les utilisateurs non connectés -->
+                <div class="alert alert-danger text-center">
+                    <h4>❌ Non Connecté</h4>
+                    <p>Vous devez être connecté avec un compte étudiant pour voir les icônes IA.</p>
+                    <div class="mt-3">
+                        <a href="{% url 'user:login' %}" class="btn btn-primary me-2">Se Connecter</a>
+                        <a href="{% url 'user:signup' %}" class="btn btn-outline-primary">S'Inscrire</a>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Instructions de dépannage -->
+            <div class="card mt-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">🔧 Si les icônes ne s'affichent pas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Étapes de dépannage :</h6>
+                            <ol>
+                                <li>Videz le cache : <kbd>Ctrl + F5</kbd></li>
+                                <li>Vérifiez la console : <kbd>F12</kbd></li>
+                                <li>Essayez un autre navigateur</li>
+                                <li>Vérifiez votre connexion internet</li>
+                            </ol>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Comptes de test :</h6>
+                            <ul>
+                                <li><strong>admin1</strong> - admin@futurecareer.com</li>
+                                <li><strong>admin</strong> - admin@gmail.com</li>
+                                <li><strong>Testuser1</strong></li>
+                                <li><strong>hadilmansour1</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function testAIFunctionality() {
+    const resultDiv = document.getElementById('testResult');
+    
+    // Test 1: Vérifier si Bootstrap Icons sont chargées
+    const testIcon = document.createElement('i');
+    testIcon.className = 'bi bi-robot';
+    testIcon.style.fontSize = '0px';
+    document.body.appendChild(testIcon);
+    
+    const iconStyle = window.getComputedStyle(testIcon);
+    const iconsLoaded = iconStyle.fontFamily.includes('bootstrap-icons') || 
+                       iconStyle.content !== 'none' || 
+                       testIcon.offsetWidth > 0;
+    
+    document.body.removeChild(testIcon);
+    
+    // Test 2: Vérifier si Bootstrap JS est chargé
+    const bootstrapLoaded = typeof bootstrap !== 'undefined';
+    
+    // Test 3: Vérifier les variables utilisateur
+    const userAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+    const userType = '{{ user.user_type|default:"undefined" }}';
+    
+    // Afficher les résultats
+    let html = '<div class="alert alert-info"><h6>Résultats des Tests :</h6><ul>';
+    
+    html += `<li><strong>Bootstrap Icons :</strong> ${iconsLoaded ? '✅ Chargées' : '❌ Non chargées'}</li>`;
+    html += `<li><strong>Bootstrap JS :</strong> ${bootstrapLoaded ? '✅ Chargé' : '❌ Non chargé'}</li>`;
+    html += `<li><strong>Utilisateur connecté :</strong> ${userAuthenticated ? '✅ Oui' : '❌ Non'}</li>`;
+    html += `<li><strong>Type d'utilisateur :</strong> ${userType}</li>`;
+    
+    const shouldShowAI = userAuthenticated && userType === 'student';
+    html += `<li><strong>Icônes IA devraient être visibles :</strong> ${shouldShowAI ? '✅ Oui' : '❌ Non'}</li>`;
+    
+    html += '</ul>';
+    
+    if (shouldShowAI && iconsLoaded && bootstrapLoaded) {
+        html += '<div class="alert alert-success mt-2">🎉 Tout semble correct ! Les icônes IA devraient être visibles.</div>';
+    } else {
+        html += '<div class="alert alert-warning mt-2">⚠️ Il y a un problème. Vérifiez les points marqués ❌.</div>';
+    }
+    
+    html += '</div>';
+    
+    resultDiv.innerHTML = html;
+    
+    // Log pour debug
+    console.log('🤖 Test IA Results:', {
+        iconsLoaded,
+        bootstrapLoaded,
+        userAuthenticated,
+        userType,
+        shouldShowAI
+    });
+}
+
+// Test automatique au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🤖 Page de test IA chargée');
+    console.log('User:', {
+        authenticated: {{ user.is_authenticated|yesno:"true,false" }},
+        type: '{{ user.user_type|default:"undefined" }}',
+        username: '{{ user.username|default:"undefined" }}'
+    });
+});
+</script>
+{% endblock %}

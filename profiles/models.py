@@ -5,7 +5,7 @@ from django.conf import settings
 import os
 from django.core.exceptions import ValidationError
 
-# PAS D'IMPORT DEPUIS companies.models ICI
+
 
 def validate_file_extension(value):
     ext = os.path.splitext(value.name)[1].lower()  
@@ -24,8 +24,8 @@ class Interest(models.Model):
         return self.name
 
 class Formation(models.Model):
-    title = models.CharField(max_length=200, verbose_name="Titre de la formation")
-    school = models.CharField(max_length=200, verbose_name="Établissement")
+    title = models.CharField(max_length=300, verbose_name="Titre de la formation")
+    school = models.CharField(max_length=300, verbose_name="Établissement")
     level = models.CharField(max_length=50, verbose_name="Niveau d'études", help_text="Ex: Bac+3, Master, Doctorat, Certification...")
     duration_in_years = models.PositiveSmallIntegerField(verbose_name="Durée (en années)", null=True, blank=True)
     def __str__(self):
@@ -40,7 +40,6 @@ class Profile(models.Model):
     cv = models.FileField(upload_to='cvs/', blank=True, null=True, verbose_name="curriculum vitae (CV)", help_text="Téléchargez votre CV au format PDF.", validators=[validate_file_extension])
     skills = models.ManyToManyField(Skill, blank=True, related_name="profiles")
     interests = models.ManyToManyField(Interest, blank=True, related_name="profiles")
-    # On peut ajouter un lien vers les formations suivies par l'étudiant
     formations = models.ManyToManyField(Formation, blank=True, related_name="students", verbose_name="Formations suivies")
 
     def __str__(self):

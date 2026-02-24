@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Diagnostic - Offres Externes{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-bug me-2"></i>
+                Diagnostic des Offres Externes
+            </h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">État actuel de la base de données</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total des offres externes :</strong> {{ total_jobs }}</p>
+                    
+                    {% if jobs %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Titre</th>
+                                        <th>Entreprise</th>
+                                        <th>URL Externe</th>
+                                        <th>Source</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for job in jobs %}
+                                    <tr>
+                                        <td>{{ job.id }}</td>
+                                        <td>{{ job.title }}</td>
+                                        <td>{{ job.company_name }}</td>
+                                        <td>
+                                            <code>{{ job.external_url|truncatechars:50 }}</code>
+                                            {% if 'example.com' in job.external_url %}
+                                                <span class="badge bg-danger ms-2">PROBLÈME</span>
+                                            {% else %}
+                                                <span class="badge bg-success ms-2">OK</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ job.source }}</td>
+                                        <td>
+                                            <a href="{% url 'profiles:external-job-detail' job.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                Tester
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Aucune offre externe dans la base de données.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Actions de diagnostic</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2 d-md-flex">
+                        <a href="{% url 'profiles:ai-job-search' %}" class="btn btn-primary">
+                            <i class="bi bi-search me-2"></i>
+                            Générer de nouvelles offres
+                        </a>
+                        <button class="btn btn-warning" onclick="clearCache()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>
+                            Vider le cache navigateur
+                        </button>
+                        <button class="btn btn-danger" onclick="confirmCleanup()">
+                            <i class="bi bi-trash me-2"></i>
+                            Nettoyer toutes les offres
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function clearCache() {
+    // Forcer le rechargement sans cache
+    window.location.reload(true);
+}
+
+function confirmCleanup() {
+    if (confirm('Êtes-vous sûr de vouloir supprimer toutes les offres externes ?')) {
+        fetch('/cleanup-external-jobs/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            location.reload();
+        })
+        .catch(error => {
+            alert('Erreur: ' + error);
+        });
+    }
+}
+</script>
+{% endblock %}

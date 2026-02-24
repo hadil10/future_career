@@ -12,7 +12,7 @@
                 <div class="card-body">
                     <h4 class="card-title">Ajouter un Résultat</h4>
 
-                    <form method="post" action="{% url 'profiles:academic-results' %}">
+                    <form method="post" action="{% url 'profiles:add-academic-result' %}">>
                         {% csrf_token %}
                         {{ form|crispy }}
                         <button type="submit" class="btn btn-primary mt-3 w-100">Ajouter</button>
@@ -34,10 +34,10 @@
                             <div class="d-flex align-items-center">
                                 
                                 <span class="badge bg-primary rounded-pill fs-6 me-3">{{ result.grade }}</span>
-                                <a href="{% url 'profiles:academic-result-update' result.id %}" class="btn btn-sm btn-outline-primary border-0 me-1" title="Modifier ce résultat">
+                                <a href="{% url 'profiles:update-academic-result' result.id %}" class="btn btn-sm btn-outline-primary border-0 me-1" title="Modifier ce résultat">
                                     <i class="bi bi-pencil-fill"></i> 
                                 </a>    
-                                <form method="post" action="{% url 'profiles:academic-result-delete' result.id %}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce résultat ?');">
+                                <form method="post" action="{% url 'profiles:delete-academic-result' result.id %}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce résultat ?');">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="Supprimer ce résultat">
                                         <i class="bi bi-trash-fill"></i>
@@ -53,7 +53,7 @@
                 </div>
             {% endif %}
             
-            <a href="{% url 'profiles:profile' %}" class="btn btn-secondary mt-4">Retour au profil</a>
+            <a href="{% url 'profiles:profile-detail' %}" class="btn btn-secondary mt-4">Retour au profil</a>
         </div>
     </div>
 </div>

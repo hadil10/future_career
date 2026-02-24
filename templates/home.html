@@ -14,7 +14,26 @@
         <div class="container text-center text-white py-5">
             <h1 class="display-4 fw-bold">Trouvez votre voie. Révélez votre potentiel.</h1>
             <p class="lead my-4">FutureCareer utilise l'intelligence artificielle pour vous aider à choisir une orientation professionnelle adaptée à vos compétences et vos passions.</p>
-            <a href="{% url 'profiles:recommendations' %}" class="btn btn-light btn-lg fw-bold px-4">Découvrir mes recommandations</a>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'profiles:questionnaire' %}" class="btn btn-light btn-lg fw-bold px-4">
+                        <i class="bi bi-clipboard-check"></i> Évaluer mes compétences
+                    </a>
+                    <a href="{% url 'profiles:recommendations' %}" class="btn btn-outline-light btn-lg fw-bold px-4">
+                        <i class="bi bi-lightbulb"></i> Voir mes recommandations
+                    </a>
+                    <button class="btn btn-success btn-lg fw-bold px-4" onclick="window.location.href='{% url 'profiles:ai-job-search' %}'">
+                        <i class="bi bi-robot"></i> Recherche IA
+                    </button>
+                {% else %}
+                    <a href="{% url 'user:signup' %}" class="btn btn-light btn-lg fw-bold px-4">
+                        <i class="bi bi-person-plus"></i> Commencer gratuitement
+                    </a>
+                    <a href="{% url 'user:login' %}" class="btn btn-outline-light btn-lg fw-bold px-4">
+                        <i class="bi bi-box-arrow-in-right"></i> Se connecter
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </header>
 
@@ -28,24 +47,58 @@
         </div>
         <div class="row">
             <!-- Fonctionnalité 1 -->
-            <div class="col-md-4 text-center">
+            <div class="col-md-4 text-center mb-4">
                 <div style="font-size: 3rem; color: var(--primary-violet);">💡</div>
                 <h3 class="h5 fw-bold mt-3">1. Évaluez-vous</h3>
-                <p class="text-muted">Remplissez notre questionnaire rapide pour nous parler de vos compétences et de vos centres d'intérêt.</p>
+                <p class="text-muted mb-3">Remplissez notre questionnaire rapide pour nous parler de vos compétences et de vos centres d'intérêt.</p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'profiles:questionnaire' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-arrow-right"></i> Commencer l'évaluation
+                    </a>
+                {% endif %}
             </div>
             <!-- Fonctionnalité 2 -->
-            <div class="col-md-4 text-center">
+            <div class="col-md-4 text-center mb-4">
                 <div style="font-size: 3rem; color: var(--primary-violet);">🎯</div>
                 <h3 class="h5 fw-bold mt-3">2. Obtenez vos résultats</h3>
-                <p class="text-muted">Notre algorithme analyse vos réponses et calcule votre compatibilité avec des dizaines de métiers.</p>
+                <p class="text-muted mb-3">Notre algorithme analyse vos réponses et calcule votre compatibilité avec des dizaines de métiers.</p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'profiles:recommendations' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-arrow-right"></i> Voir les résultats
+                    </a>
+                {% endif %}
             </div>
             <!-- Fonctionnalité 3 -->
-            <div class="col-md-4 text-center">
+            <div class="col-md-4 text-center mb-4">
                 <div style="font-size: 3rem; color: var(--primary-violet);">🚀</div>
                 <h3 class="h5 fw-bold mt-3">3. Explorez votre avenir</h3>
-                <p class="text-muted">Découvrez les carrières qui vous correspondent le mieux, les salaires et les formations associées.</p>
+                <p class="text-muted mb-3">Découvrez les carrières qui vous correspondent le mieux, triées par priorité selon votre profil.</p>
+                {% if user.is_authenticated %}
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a href="{% url 'profiles:offer-list' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-list"></i> Toutes les offres
+                        </a>
+                        <a href="{% url 'profiles:offer-list' %}?sort=priority" class="btn btn-primary btn-sm">
+                            <i class="bi bi-star-fill"></i> Par priorité
+                        </a>
+                    </div>
+                {% endif %}
             </div>
         </div>
+
+        {% if user.is_authenticated %}
+            <div class="text-center mt-5">
+                <div class="card mx-auto" style="max-width: 600px;">
+                    <div class="card-body">
+                        <h4 class="card-title">Prêt à découvrir votre potentiel ?</h4>
+                        <p class="card-text">Commencez par évaluer vos compétences et centres d'intérêt pour recevoir des recommandations personnalisées.</p>
+                        <a href="{% url 'profiles:questionnaire' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-clipboard-check"></i> Remplir le questionnaire
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
     </section>
 
 

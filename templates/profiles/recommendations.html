@@ -4,27 +4,145 @@
 
 {% block content %}
 <div class="container my-5">
-    <h1 class="mb-4">Offres Recommandées pour Vous</h1>
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="mb-0">Offres Recommandées pour Vous</h1>
+                <div class="btn-group">
+                    <button id="aiSearchBtn" class="btn btn-success" onclick="launchAISearch()" title="Recherche IA instantanée">
+                        <i class="bi bi-robot me-1"></i>
+                        <span class="ai-search-text">Recherche IA</span>
+                        <div class="spinner-border spinner-border-sm ms-2 d-none" role="status" id="aiSpinner">
+                            <span class="visually-hidden">Recherche en cours...</span>
+                        </div>
+                    </button>
+                    <a href="{% url 'profiles:questionnaire' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-gear"></i> Ajuster mes préférences
+                    </a>
+                    <a href="{% url 'profiles:offer-list' %}?sort=priority" class="btn btn-primary">
+                        <i class="bi bi-list-stars"></i> Toutes les offres par priorité
+                    </a>
+                </div>
+            </div>
 
-    {% if recommendations %}
-        <div class="list-group">
-            {% for reco in recommendations %}
-        
-                <a href="{% url 'profiles:job-detail' reco.offer.id %}" class="list-group-item list-group-item-action flex-column align-items-start mb-3 shadow-sm">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">{{ reco.offer.title }}</h5>
-                        <span class="badge bg-primary rounded-pill fs-6">{{ reco.score }}%</span>
+            {% if recommendations %}
+                <div class="alert alert-success mb-4">
+                    <i class="bi bi-check-circle"></i>
+                    <strong>{{ total_recommendations }} offre(s) trouvée(s)</strong> basées sur vos compétences et intérêts.
+                    <a href="{% url 'profiles:questionnaire' %}" class="alert-link">Modifier mes évaluations</a> pour affiner les résultats.
+                </div>
+
+                <div class="list-group">
+                    {% for reco in recommendations %}
+                        <a href="{% url 'profiles:job-detail' reco.offer.id %}" class="list-group-item list-group-item-action flex-column align-items-start mb-3 shadow-sm">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ reco.offer.title }}</h5>
+                                <span class="badge bg-primary rounded-pill fs-6">{{ reco.score }}% compatibilité</span>
+                            </div>
+                            <p class="mb-1">
+                                <strong>{{ reco.offer.company.name }}</strong>
+                                {% if reco.offer.location %} - {{ reco.offer.location }}{% endif %}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    Compétences : {{ reco.skill_score }}% | Intérêts : {{ reco.interest_score }}%
+                                </small>
+                                <small class="text-muted">{{ reco.offer.offer_type|capfirst }}</small>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% include 'includes/pagination.html' %}
+            {% else %}
+                <div class="card text-center">
+                    <div class="card-body py-5">
+                        <i class="bi bi-lightbulb display-1 text-muted mb-3"></i>
+                        <h3 class="card-title">Aucune recommandation disponible</h3>
+                        <p class="card-text text-muted mb-4">
+                            Pour recevoir des recommandations personnalisées, nous avons besoin d'en savoir plus sur vos compétences et centres d'intérêt.
+                        </p>
+                        <a href="{% url 'profiles:questionnaire' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-clipboard-check"></i> Remplir le questionnaire
+                        </a>
                     </div>
-                    <p class="mb-1">{{ reco.offer.company.name }} - {{ reco.offer.location }}</p>
-                    <small>Compatibilité des compétences : {{ reco.skill_score }}%</small>
-                </a>
-            {% endfor %}
+                </div>
+            {% endif %}
         </div>
-    {% else %}
-        <div class="alert alert-info">
-            <p>Nous n'avons pas encore assez d'informations pour vous fournir des recommandations.</p>
-            <p>Veuillez remplir notre <a href="{% url 'profiles:questionnaire' %}" class="alert-link">questionnaire de compétences et d'intérêts</a> pour commencer.</p>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-robot me-2"></i>
+                        Recherche IA Avancée
+                    </h5>
+                    <p class="card-text text-muted">
+                        Utilisez notre IA pour découvrir des offres personnalisées depuis JSearch et notre base de données.
+                    </p>
+                    <button class="btn btn-success w-100 mb-3" onclick="launchAISearch()">
+                        <i class="bi bi-robot me-2"></i>
+                        Lancer la Recherche IA
+                    </button>
+                    
+                    <h6 class="fw-bold">Fonctionnalités IA :</h6>
+                    <ul class="list-unstyled small">
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Recherche sur JSearch</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Analyse de compatibilité</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Tri intelligent</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Recommandations temps réel</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Comment ça marche ?</h5>
+                </div>
+                <div class="card-body">
+                    <ol class="list-unstyled">
+                        <li class="mb-3">
+                            <span class="badge bg-primary rounded-circle me-2">1</span>
+                            <strong>Évaluez vos compétences</strong><br>
+                            <small class="text-muted">Indiquez votre niveau dans différents domaines</small>
+                        </li>
+                        <li class="mb-3">
+                            <span class="badge bg-primary rounded-circle me-2">2</span>
+                            <strong>Définissez vos intérêts</strong><br>
+                            <small class="text-muted">Choisissez ce qui vous passionne</small>
+                        </li>
+                        <li class="mb-3">
+                            <span class="badge bg-primary rounded-circle me-2">3</span>
+                            <strong>Recevez des recommandations</strong><br>
+                            <small class="text-muted">Notre algorithme trouve les offres qui vous correspondent</small>
+                        </li>
+                    </ol>
+                    <div class="d-grid">
+                        <a href="{% url 'profiles:questionnaire' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-right"></i> Commencer maintenant
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Améliorer vos résultats</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Plus vous êtes précis dans vos évaluations, plus nos recommandations seront pertinentes.
+                    </p>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check text-success"></i> Mettez à jour régulièrement vos compétences</li>
+                        <li><i class="bi bi-check text-success"></i> Explorez de nouveaux centres d'intérêt</li>
+                        <li><i class="bi bi-check text-success"></i> Soyez honnête dans vos auto-évaluations</li>
+                    </ul>
+                </div>
+            </div>
         </div>
-    {% endif %}
+    </div>
 </div>
+
 {% endblock %}

@@ -79,8 +79,8 @@
                         <p class="text-muted">Vous êtes connecté en tant qu'entreprise et ne pouvez pas postuler.</p>
                     {% else %}
                         <p>
-                            <a href="{% url 'login' %}?next={{ request.path }}">Connectez-vous</a> ou 
-                            <a href="{% url 'signup' %}">inscrivez-vous</a> en tant qu'étudiant pour postuler.
+                            <a href="{% url 'user:login' %}?next={{ request.path }}">Connectez-vous</a> ou 
+                            <a href="{% url 'user:signup' %}">inscrivez-vous</a> en tant qu'étudiant pour postuler.
                         </p>
                     {% endif %}
                 </div>

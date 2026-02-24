@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Recherche IA{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-success text-white text-center">
+                    <h3>🤖 Test de la Recherche IA</h3>
+                </div>
+                <div class="card-body">
+                    {% if user.is_authenticated and user.user_type == 'student' %}
+                        <div class="alert alert-success">
+                            <h5>✅ Utilisateur connecté : {{ user.username }}</h5>
+                            <p>Vous pouvez tester la recherche IA.</p>
+                        </div>
+
+                        <!-- Informations du profil -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6>📊 Votre Profil</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Compétences :</h6>
+                                        {% if user.profile.skill_evaluations.exists %}
+                                            <ul>
+                                                {% for eval in user.profile.skill_evaluations.all %}
+                                                    <li>{{ eval.skill.name }} (Niveau {{ eval.level }}/5)</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <p class="text-muted">Aucune compétence évaluée</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Intérêts :</h6>
+                                        {% if user.profile.interest_evaluations.exists %}
+                                            <ul>
+                                                {% for eval in user.profile.interest_evaluations.all %}
+                                                    <li>{{ eval.interest.name }} (Niveau {{ eval.level }}/5)</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <p class="text-muted">Aucun intérêt évalué</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if not user.profile.skill_evaluations.exists %}
+                                    <div class="alert alert-warning">
+                                        <strong>Recommandation :</strong> 
+                                        <a href="{% url 'profiles:questionnaire' %}">Remplissez le questionnaire</a> 
+                                        pour améliorer la précision de la recherche IA.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Test de recherche -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6>🔍 Test de Recherche IA</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-8">
+                                        <label for="searchLocation" class="form-label">Localisation</label>
+                                        <input type="text" class="form-control" id="searchLocation" value="Paris" placeholder="Ville ou région">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Options</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="includeExternal" checked>
+                                            <label class="form-check-label" for="includeExternal">
+                                                Inclure recherche externe
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button id="testSearchBtn" class="btn btn-success btn-lg" onclick="performTestSearch()">
+                                    <i class="bi bi-robot me-2"></i>
+                                    Lancer la Recherche IA
+                                </button>
+                                
+                                <div id="searchResults" class="mt-4"></div>
+                            </div>
+                        </div>
+
+                        <!-- État des services -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6>⚙️ État des Services IA</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Services Externes :</h6>
+                                        <ul class="list-unstyled">
+                                            <li>
+                                                <i class="bi bi-circle-fill text-warning me-2"></i>
+                                                <strong>Indeed API :</strong> Mode dégradé
+                                                <small class="text-muted d-block">Utilise des offres simulées basées sur votre profil</small>
+                                            </li>
+                                            <li>
+                                                <i class="bi bi-circle-fill text-warning me-2"></i>
+                                                <strong>OpenAI :</strong> Mode dégradé
+                                                <small class="text-muted d-block">Utilise des recommandations basées sur des règles</small>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Services Internes :</h6>
+                                        <ul class="list-unstyled">
+                                            <li>
+                                                <i class="bi bi-circle-fill text-success me-2"></i>
+                                                <strong>Moteur de recommandation :</strong> Actif
+                                            </li>
+                                            <li>
+                                                <i class="bi bi-circle-fill text-success me-2"></i>
+                                                <strong>Analyse de profil :</strong> Actif
+                                            </li>
+                                            <li>
+                                                <i class="bi bi-circle-fill text-success me-2"></i>
+                                                <strong>Calcul de compatibilité :</strong> Actif
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info mt-3">
+                                    <h6>💡 Pour activer tous les services :</h6>
+                                    <p class="mb-2">Ajoutez ces variables dans votre fichier <code>.env</code> :</p>
+                                    <ul class="mb-0">
+                                        <li><code>RAPIDAPI_KEY=votre_clé</code> (pour Indeed)</li>
+                                        <li><code>OPENAI_API_KEY=votre_clé</code> (pour OpenAI)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <div class="alert alert-warning text-center">
+                            <h5>⚠️ Connexion Requise</h5>
+                            <p>Vous devez être connecté avec un compte étudiant pour tester la recherche IA.</p>
+                            <a href="{% url 'user:login' %}" class="btn btn-primary">Se Connecter</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function performTestSearch() {
+    const location = document.getElementById('searchLocation').value;
+    const includeExternal = document.getElementById('includeExternal').checked;
+    const resultsDiv = document.getElementById('searchResults');
+    const searchBtn = document.getElementById('testSearchBtn');
+    
+    // Afficher le chargement
+    searchBtn.disabled = true;
+    searchBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Recherche en cours...';
+    
+    resultsDiv.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-success mb-3" role="status">
+                <span class="visually-hidden">Recherche en cours...</span>
+            </div>
+            <p class="text-muted">L'IA analyse les offres pour vous...</p>
+        </div>
+    `;
+    
+    // Effectuer la recherche AJAX
+    fetch('{% url "profiles:ai-instant-recommendations" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify({
+            location: location,
+            search_external: includeExternal,
+            limit: 10
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displaySearchResults(data.data);
+        } else {
+            showError('Erreur lors de la recherche: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showError('Erreur de connexion');
+    })
+    .finally(() => {
+        searchBtn.disabled = false;
+        searchBtn.innerHTML = '<i class="bi bi-robot me-2"></i>Lancer la Recherche IA';
+    });
+}
+
+function displaySearchResults(data) {
+    const resultsDiv = document.getElementById('searchResults');
+    
+    if (data.all_jobs.length === 0) {
+        resultsDiv.innerHTML = `
+            <div class="alert alert-warning text-center">
+                <h5>Aucune offre trouvée</h5>
+                <p>Essayez de modifier vos critères de recherche ou complétez votre profil.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="alert alert-success">
+            <h5>✅ Recherche réussie !</h5>
+            <p><strong>${data.total_count} offre(s)</strong> trouvée(s) en <strong>${data.search_time}s</strong></p>
+        </div>
+        <div class="row g-3">
+    `;
+    
+    data.all_jobs.forEach((job, index) => {
+        const badgeClass = job.compatibility_score >= 80 ? 'bg-success' : 
+                          job.compatibility_score >= 50 ? 'bg-warning' : 'bg-secondary';
+        const sourceIcon = job.is_internal ? 'bi-house-fill' : 'bi-globe';
+        const sourceText = job.is_internal ? 'Interne' : 'Externe (Simulé)';
+        
+        html += `
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0">${job.title}</h6>
+                            <span class="badge ${badgeClass}">${job.compatibility_score}%</span>
+                        </div>
+                        <p class="card-text text-muted mb-2">
+                            <i class="bi bi-building me-1"></i>${job.company}
+                        </p>
+                        <p class="card-text text-muted mb-2">
+                            <i class="bi bi-geo-alt me-1"></i>${job.location}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="${sourceIcon} me-1"></i>${sourceText}
+                            </small>
+                            ${job.is_internal ? 
+                                `<a href="${job.url}" class="btn btn-sm btn-outline-primary">Voir l'offre</a>` :
+                                `<span class="badge bg-info">Démo</span>`
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    resultsDiv.innerHTML = html;
+}
+
+function showError(message) {
+    const resultsDiv = document.getElementById('searchResults');
+    resultsDiv.innerHTML = `
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            ${message}
+        </div>
+    `;
+}
+</script>
+{% endblock %}

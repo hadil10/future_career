@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title }} - {{ job.company_name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- En-tête de l'offre -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h1 class="h3 mb-2">{{ job.title }}</h1>
+                            <h2 class="h5 text-muted mb-0">
+                                <i class="bi bi-building me-2"></i>{{ job.company_name }}
+                            </h2>
+                        </div>
+                        <div class="text-end">
+                            {% if compatibility_score > 0 %}
+                                <span class="badge {% if compatibility_score >= 80 %}bg-success{% elif compatibility_score >= 50 %}bg-warning{% else %}bg-secondary{% endif %} fs-6 mb-2">
+                                    {{ compatibility_score }}% compatibilité
+                                </span>
+                            {% endif %}
+                            <div>
+                                <span class="badge bg-info">
+                                    <i class="bi bi-globe me-1"></i>{{ job.get_source_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Informations de base -->
+                    <div class="row mb-3">
+                        {% if job.location %}
+                        <div class="col-md-6">
+                            <i class="bi bi-geo-alt text-muted me-2"></i>
+                            <strong>Localisation :</strong> {{ job.location }}
+                        </div>
+                        {% endif %}
+                        
+                        {% if job.salary_min or job.salary_max %}
+                        <div class="col-md-6">
+                            <i class="bi bi-currency-euro text-muted me-2"></i>
+                            <strong>Salaire :</strong>
+                            {% if job.salary_min and job.salary_max %}
+                                {{ job.salary_min|floatformat:0 }}€ - {{ job.salary_max|floatformat:0 }}€
+                            {% elif job.salary_min %}
+                                À partir de {{ job.salary_min|floatformat:0 }}€
+                            {% elif job.salary_max %}
+                                Jusqu'à {{ job.salary_max|floatformat:0 }}€
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Boutons d'action -->
+                    <div class="d-flex gap-2 flex-wrap">
+                        {% if job.source == 'jsearch' and 'mock' in job.external_url %}
+                        <button class="btn btn-secondary" onclick="showDemoMessage()">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Offre simulée (démo)
+                        </button>
+                        {% else %}
+                        <a href="{{ job.external_url }}" target="_blank" class="btn btn-primary">
+                            <i class="bi bi-box-arrow-up-right me-2"></i>
+                            Voir l'offre sur JSearch
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'profiles:offer-list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            Retour aux offres
+                        </a>
+                        {% if user.is_authenticated and user.user_type == 'student' %}
+                        <button class="btn btn-success" onclick="saveJob({{ job.id }})">
+                            <i class="bi bi-bookmark me-2"></i>
+                            Sauvegarder
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Description de l'offre -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-text me-2"></i>
+                        Description du poste
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="job-description">
+                        {{ job.description|linebreaks }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Compétences extraites -->
+            {% if job.extracted_skills.exists %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-gear me-2"></i>
+                        Compétences requises
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for skill in job.extracted_skills.all %}
+                            <span class="badge bg-primary-subtle text-primary-emphasis rounded-pill">
+                                {{ skill.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Analyse de compatibilité -->
+            {% if user.is_authenticated and user.user_type == 'student' and compatibility_score > 0 %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up me-2"></i>
+                        Analyse de compatibilité
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="display-6 fw-bold {% if compatibility_score >= 80 %}text-success{% elif compatibility_score >= 50 %}text-warning{% else %}text-secondary{% endif %}">
+                            {{ compatibility_score }}%
+                        </div>
+                        <small class="text-muted">Score de compatibilité</small>
+                    </div>
+                    
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar {% if compatibility_score >= 80 %}bg-success{% elif compatibility_score >= 50 %}bg-warning{% else %}bg-secondary{% endif %}" 
+                             role="progressbar" style="width: {{ compatibility_score }}%"></div>
+                    </div>
+                    
+                    {% if compatibility_score >= 80 %}
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <strong>Excellente compatibilité !</strong> Cette offre correspond très bien à votre profil.
+                        </div>
+                    {% elif compatibility_score >= 50 %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Bonne compatibilité.</strong> Cette offre pourrait vous intéresser.
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Compatibilité modérée.</strong> Vérifiez si cette offre correspond à vos objectifs.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Informations sur l'entreprise -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-building me-2"></i>
+                        À propos de l'entreprise
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>{{ job.company_name }}</h6>
+                    {% if job.location %}
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-geo-alt me-1"></i>
+                            {{ job.location }}
+                        </p>
+                    {% endif %}
+                    <p class="text-muted">
+                        <i class="bi bi-calendar me-1"></i>
+                        Offre publiée le {{ job.created_at|date:"d/m/Y" }}
+                    </p>
+                    
+                    {% if job.source == 'jsearch' and 'mock' in job.external_url %}
+                    <button class="btn btn-outline-secondary btn-sm" onclick="showDemoMessage()">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Offre simulée (démo)
+                    </button>
+                    {% else %}
+                    <a href="{{ job.external_url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>
+                        Voir sur JSearch
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Offres similaires -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        Offres similaires
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Découvrez d'autres offres qui pourraient vous intéresser :</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'profiles:offer-list' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-search me-1"></i>
+                            Parcourir toutes les offres
+                        </a>
+                        <a href="{% url 'profiles:recommendations' %}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-lightbulb me-1"></i>
+                            Mes recommandations
+                        </a>
+                        {% if user.is_authenticated and user.user_type == 'student' %}
+                        <button class="btn btn-success btn-sm" onclick="launchAISearch()">
+                            <i class="bi bi-robot me-1"></i>
+                            Recherche IA
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de sauvegarde -->
+<div class="modal fade" id="saveJobModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Offre sauvegardée</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Cette offre a été ajoutée à vos favoris !</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de message démo -->
+<div class="modal fade" id="demoMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-info-circle text-info me-2"></i>
+                    Offre de démonstration
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-lightbulb me-2"></i>Mode démonstration</h6>
+                    <p class="mb-2">Cette offre est générée automatiquement pour démontrer les fonctionnalités de notre système d'IA.</p>
+                    <p class="mb-0">
+                        <strong>Pour accéder aux vraies offres JSearch :</strong><br>
+                        Configurez les clés API dans les paramètres de l'application.
+                    </p>
+                </div>
+                <div class="mt-3">
+                    <h6>Fonctionnalités disponibles :</h6>
+                    <ul class="mb-0">
+                        <li>Analyse de compatibilité avec votre profil</li>
+                        <li>Extraction automatique des compétences requises</li>
+                        <li>Recommandations personnalisées</li>
+                        <li>Sauvegarde dans vos favoris</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="bi bi-check-lg me-1"></i>
+                    Compris
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.job-description {
+    line-height: 1.6;
+}
+
+.job-description p {
+    margin-bottom: 1rem;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.badge.fs-6 {
+    font-size: 0.875rem !important;
+}
+
+@media (max-width: 768px) {
+    .d-flex.gap-2 {
+        flex-direction: column;
+    }
+    
+    .d-flex.gap-2 .btn {
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+
+<script>
+function saveJob(jobId) {
+    // Simuler la sauvegarde
+    const modal = new bootstrap.Modal(document.getElementById('saveJobModal'));
+    modal.show();
+    
+    // TODO: Implémenter la vraie sauvegarde via AJAX
+    console.log('Sauvegarde de l\'offre:', jobId);
+}
+
+function launchAISearch() {
+    // Rediriger vers la recherche IA
+    window.location.href = '{% url "profiles:ai-job-search" %}';
+}
+
+function showDemoMessage() {
+    // Afficher un message informatif pour les offres simulées
+    const modal = new bootstrap.Modal(document.getElementById('demoMessageModal'));
+    modal.show();
+}
+
+// Animation de la barre de progression
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBar = document.querySelector('.progress-bar');
+    if (progressBar) {
+        // Animation d'entrée
+        setTimeout(() => {
+            progressBar.style.transition = 'width 1s ease-in-out';
+        }, 100);
+    }
+});
+</script>
+{% endblock %}

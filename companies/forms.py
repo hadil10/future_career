@@ -23,37 +23,11 @@ class JobOfferForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'placeholder': 'Ex: Python, Gestion de projet, SEO'}),
         help_text="Entrez les compétences nécessaires, séparées par une virgule."
     )
-    class Meta:
-        model = JobOffer
-       
-        fields = ['title', 'description', 'job_type', 'location', 'is_active']
-       
-        labels = {
-            'title': "Titre du poste",
-            'description': "Description détaillée du poste et des missions",
-            'job_type': "Type de contrat",
-            'location': "Lieu (Ville, Pays)",
-            'is_active': "Publier cette offre (la rendre visible aux étudiants)",
-             
-        }
-        exclude =['required_skills']
-      
-
-    def __init__(self, *args, **kwargs):
-        """
-        Le constructeur standard et robuste pour un formulaire personnalisé.
-        """
-        request = kwargs.pop('request', None)
-
-        super(JobOfferForm, self).__init__(*args, **kwargs)
-
-        if request and hasattr(request.user, 'company_profile'):
-            pass
-
+    
     class Meta:
         model = JobOffer
         # On exclut 'company' car on l'ajoutera manuellement dans la vue.
-        fields = ['title', 'description', 'offer_type', 'location', 'required_skills', 'is_active']
+        fields = ['title', 'description', 'offer_type', 'location', 'is_active']
         labels = {
             'title': "Titre du poste",
             'description': "Description détaillée du poste",
@@ -64,3 +38,10 @@ class JobOfferForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 6}),
         }
+
+    def __init__(self, *args, **kwargs):
+        """
+        Le constructeur standard et robuste pour un formulaire personnalisé.
+        """
+        request = kwargs.pop('request', None)
+        super(JobOfferForm, self).__init__(*args, **kwargs)

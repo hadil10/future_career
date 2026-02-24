@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}Conseils de Carrière IA{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="mb-0">
+                    <i class="bi bi-compass me-2"></i>
+                    Conseils de Carrière Personnalisés
+                </h1>
+                <a href="{% url 'profiles:ai-dashboard' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Retour au tableau de bord
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analyse du profil -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-person-badge me-2"></i>
+                        Analyse de Votre Profil
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Complétude du profil</span>
+                                <span class="fw-bold">{{ analysis.profile_completeness|floatformat:0 }}%</span>
+                            </div>
+                            <div class="progress mb-3" style="height: 8px;">
+                                <div class="progress-bar bg-info" role="progressbar" 
+                                     style="width: {{ analysis.profile_completeness }}%"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Score d'employabilité</span>
+                                <span class="fw-bold">{{ analysis.marketability_score|floatformat:0 }}%</span>
+                            </div>
+                            <div class="progress mb-3" style="height: 8px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ analysis.marketability_score }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Chemins de carrière suggérés -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-signpost me-2"></i>
+                        Chemins de Carrière Recommandés
+                    </h5>
+                    {% if career_paths %}
+                        <div class="row g-3">
+                            {% for path in career_paths %}
+                                <div class="col-12">
+                                    <div class="card border-0 bg-light">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="card-title mb-0">{{ path.title }}</h6>
+                                                <span class="badge bg-primary">{{ path.match_score }}% compatible</span>
+                                            </div>
+                                            <p class="card-text text-muted small mb-3">{{ path.description }}</p>
+                                            
+                                            <div class="mb-2">
+                                                <small class="text-muted fw-bold">Compétences requises :</small>
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                {% for skill in path.required_skills %}
+                                                    <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ skill }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-compass display-4 text-muted mb-3"></i>
+                            <p class="text-muted">
+                                Complétez votre questionnaire pour recevoir des suggestions de carrière personnalisées.
+                            </p>
+                            <a href="{% url 'profiles:questionnaire' %}" class="btn btn-primary">
+                                <i class="bi bi-clipboard-check me-1"></i>
+                                Compléter le questionnaire
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Compétences à développer -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-graph-up-arrow me-2"></i>
+                        Compétences à Développer
+                    </h5>
+                    {% if skill_recommendations %}
+                        <div class="list-group list-group-flush">
+                            {% for recommendation in skill_recommendations %}
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-bold">{{ recommendation.skill }}</span>
+                                        <span class="badge bg-warning">P{{ recommendation.priority }}</span>
+                                    </div>
+                                    <small class="text-muted">{{ recommendation.reason }}</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                P1-P5 : Niveau de priorité (P5 = Très important)
+                            </small>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-lightbulb display-6 text-muted mb-2"></i>
+                            <p class="text-muted small">
+                                L'IA analysera vos compétences pour des recommandations personnalisées.
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions recommandées -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="bi bi-lightning me-2"></i>
+                        Actions Recommandées
+                    </h6>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'profiles:ai-job-search' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-search me-1"></i>
+                            Rechercher des offres
+                        </a>
+                        <a href="{% url 'profiles:questionnaire' %}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-gear me-1"></i>
+                            Améliorer mon profil
+                        </a>
+                        <a href="{% url 'profiles:offer-list' %}?sort=priority" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-star me-1"></i>
+                            Offres prioritaires
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conseils généraux -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-chat-dots me-2"></i>
+                        Conseils Personnalisés
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="bi bi-trophy display-6 text-warning mb-2"></i>
+                                <h6>Valorisez vos Forces</h6>
+                                <p class="small text-muted">
+                                    Mettez en avant vos compétences les plus développées dans vos candidatures.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="bi bi-graph-up display-6 text-success mb-2"></i>
+                                <h6>Développez-vous</h6>
+                                <p class="small text-muted">
+                                    Concentrez-vous sur les compétences prioritaires pour votre secteur.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="bi bi-network-widescreen display-6 text-info mb-2"></i>
+                                <h6>Restez Connecté</h6>
+                                <p class="small text-muted">
+                                    Utilisez notre recherche IA pour découvrir de nouvelles opportunités.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

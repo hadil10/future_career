@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponseForbidden
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from .models import Company, JobOffer, Application
 from .forms import JobOfferForm 
@@ -17,45 +18,71 @@ def company_required(view_func ):
     return _wrapped_view
 
 # =======================================================
-# LE TABLEAU DE BORD DE L'ENTREPRISE (VOTRE OBJECTIF)
+# LE TABLEAU DE BORD DE L'ENTREPRISE 
 # =======================================================
 @company_required
 def company_dashboard(request):
     """
-    Affiche le tableau de bord de l'entreprise avec la liste de ses offres.
+    Affiche le tableau de bord de l'entreprise avec la liste de ses offres paginées.
     C'est la page principale pour une entreprise.
     """
     company_profile = get_object_or_404(Company, user=request.user)
-    job_offers = company_profile.job_offers.all().order_by('-created_at')
+    job_offers_list = company_profile.job_offers.all().order_by('-created_at')
+    
+    # Pagination des offres
+    paginator = Paginator(job_offers_list, 8)  # 8 offres par page
+    page_number = request.GET.get('page')
+    
+    try:
+        job_offers = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        job_offers = paginator.get_page(1)
+    except EmptyPage:
+        job_offers = paginator.get_page(paginator.num_pages)
     
     context = {
         'company': company_profile,
         'offers': job_offers,
+        'page_obj': job_offers,
+        'total_offers': job_offers_list.count()
     }
     return render(request, 'companies/dashboard.html', context)
 
 # =======================================================
-# LA VUE POUR VOIR LES CANDIDATS (LA PIÈCE MANQUANTE)
+# LA VUE POUR VOIR LES CANDIDATS 
 # =======================================================
 @company_required
 def offer_applicants_view(request, offer_id):
     """
-    Affiche la liste de tous les étudiants qui ont postulé à une offre spécifique.
+    Affiche la liste paginée de tous les étudiants qui ont postulé à une offre spécifique.
     """
     # On récupère l'offre, en s'assurant qu'elle appartient bien à l'entreprise connectée.
     offer = get_object_or_404(JobOffer, id=offer_id, company__user=request.user)
     
     # On récupère toutes les candidatures pour cette offre.
-    applicants = Application.objects.filter(job_offer=offer).select_related('student__user').order_by('-applied_at')
+    applicants_list = Application.objects.filter(job_offer=offer).select_related('student__user').order_by('-applied_at')
+    
+    # Pagination des candidatures
+    paginator = Paginator(applicants_list, 15)  # 15 candidatures par page
+    page_number = request.GET.get('page')
+    
+    try:
+        applicants = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        applicants = paginator.get_page(1)
+    except EmptyPage:
+        applicants = paginator.get_page(paginator.num_pages)
     
     context = {
         'offer': offer,
         'applicants': applicants,
+        'page_obj': applicants,
+        'total_applicants': applicants_list.count()
     }
     return render(request, 'companies/offer_applicants.html', context)
 
 # =======================================================
-# GESTION DES OFFRES D'EMPLOI (Création)
+# GESTION DES OFFRES D'EMPLOI 
 # =======================================================
 @company_required
 def create_job_offer(request):
@@ -74,7 +101,7 @@ def create_job_offer(request):
             
             job_offer.required_skills.clear() 
             for name in skill_names:
-                skill, created = Skill.objects.get_or_create(name__iexact=name.lower()) 
+                skill, created = Skill.objects.get_or_create(name__iexact=name, defaults={'name': name})
                 job_offer.required_skills.add(skill)
 
             messages.success(request, "L'offre d'emploi a été créée avec succès.")
@@ -106,7 +133,7 @@ def update_job_offer(request, offer_id):
             
             updated_offer.required_skills.clear() 
             for name in skill_names:
-                skill, created = Skill.objects.get_or_create(name__iexact=name.lower())
+                skill, created = Skill.objects.get_or_create(name__iexact=name, defaults={'name': name})
                 updated_offer.required_skills.add(skill)
 
             messages.success(request, "L'offre d'emploi a été mise à jour avec succès.")

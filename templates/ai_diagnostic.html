@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}Diagnostic IA{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h1>🔧 Diagnostic des Icônes IA</h1>
+            
+            <div class="alert alert-info">
+                <h5>État de l'utilisateur actuel :</h5>
+                <ul>
+                    <li><strong>Connecté :</strong> {% if user.is_authenticated %}✅ Oui ({{ user.username }}){% else %}❌ Non{% endif %}</li>
+                    {% if user.is_authenticated %}
+                    <li><strong>Type d'utilisateur :</strong> {{ user.user_type }}</li>
+                    <li><strong>Email :</strong> {{ user.email }}</li>
+                    <li><strong>Staff :</strong> {{ user.is_staff }}</li>
+                    <li><strong>Actif :</strong> {{ user.is_active }}</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            {% if user.is_authenticated and user.user_type == 'student' %}
+                <div class="alert alert-success">
+                    <h5>✅ Conditions remplies pour voir les icônes IA</h5>
+                    <p>Vous devriez voir les éléments IA suivants :</p>
+                </div>
+
+                <!-- Test 1: Menu IA dans la navigation -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>🧪 Test 1: Menu IA Navigation</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Regardez en haut de la page dans la barre de navigation. Vous devriez voir :</p>
+                        <ul>
+                            <li>Un menu déroulant "IA" avec une icône robot 🤖</li>
+                            <li>Trois options dans le menu : Tableau de bord IA, Recherche intelligente, Conseils de carrière</li>
+                        </ul>
+                        <div class="alert alert-warning">
+                            <strong>Si vous ne voyez pas ce menu :</strong>
+                            <ol>
+                                <li>Videz le cache de votre navigateur (Ctrl+F5)</li>
+                                <li>Vérifiez la console JavaScript (F12)</li>
+                                <li>Essayez un autre navigateur</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test 2: Boutons IA sur les pages -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>🧪 Test 2: Boutons IA sur les Pages</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Page Recommandations</h6>
+                                <a href="{% url 'profiles:recommendations' %}" class="btn btn-primary mb-2">
+                                    Aller aux Recommandations
+                                </a>
+                                <p class="text-muted small">Cherchez un bouton vert "Recherche IA" en haut de la page</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Page Liste des Offres</h6>
+                                <a href="{% url 'profiles:offer-list' %}" class="btn btn-primary mb-2">
+                                    Aller aux Offres
+                                </a>
+                                <p class="text-muted small">Cherchez un bouton "IA" dans les options de tri</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test 3: Bouton IA de test -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>🧪 Test 3: Bouton IA Fonctionnel</h5>
+                    </div>
+                    <div class="card-body">
+                        <button id="testAiBtn" class="btn btn-success btn-lg" onclick="testAIFunction()">
+                            <i class="bi bi-robot me-2"></i>
+                            Test Recherche IA
+                        </button>
+                        <p class="text-muted mt-2">Cliquez sur ce bouton pour tester si JavaScript fonctionne</p>
+                        <div id="testResult" class="mt-3"></div>
+                    </div>
+                </div>
+
+                <!-- Test 4: Accès direct aux pages IA -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>🧪 Test 4: Accès Direct aux Pages IA</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <a href="{% url 'profiles:ai-dashboard' %}" class="btn btn-success w-100 mb-2">
+                                    <i class="bi bi-speedometer2 me-2"></i>
+                                    Tableau de Bord IA
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{% url 'profiles:ai-job-search' %}" class="btn btn-success w-100 mb-2">
+                                    <i class="bi bi-search me-2"></i>
+                                    Recherche Intelligente
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{% url 'profiles:ai-career-guidance' %}" class="btn btn-success w-100 mb-2">
+                                    <i class="bi bi-compass me-2"></i>
+                                    Conseils de Carrière
+                                </a>
+                            </div>
+                        </div>
+                        <p class="text-muted mt-2">Ces liens devraient tous fonctionner</p>
+                    </div>
+                </div>
+
+            {% elif user.is_authenticated and user.user_type == 'company' %}
+                <div class="alert alert-warning">
+                    <h5>⚠️ Vous êtes connecté en tant qu'entreprise</h5>
+                    <p>Les icônes IA pour étudiants ne sont pas visibles pour les comptes entreprise.</p>
+                    <p>Connectez-vous avec un compte étudiant comme : admin1, admin, Testuser1</p>
+                    <a href="{% url 'user:logout' %}" class="btn btn-warning">Se déconnecter</a>
+                </div>
+
+            {% else %}
+                <div class="alert alert-danger">
+                    <h5>❌ Vous n'êtes pas connecté</h5>
+                    <p>Connectez-vous avec un compte étudiant pour voir les icônes IA.</p>
+                    <div class="mt-3">
+                        <a href="{% url 'user:login' %}" class="btn btn-primary me-2">Se connecter</a>
+                        <a href="{% url 'user:signup' %}" class="btn btn-outline-primary">S'inscrire</a>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Informations de débogage -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>🔍 Informations de Débogage</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>URLs IA disponibles :</h6>
+                            <ul class="list-unstyled">
+                                <li>✅ /ai/ (Tableau de bord)</li>
+                                <li>✅ /ai/search/ (Recherche)</li>
+                                <li>✅ /ai/career-guidance/ (Conseils)</li>
+                                <li>✅ /ai/instant-recommendations/ (AJAX)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Vérifications à faire :</h6>
+                            <ul class="list-unstyled">
+                                <li>🔍 Cache navigateur vidé</li>
+                                <li>🔍 Console JavaScript (F12)</li>
+                                <li>🔍 Erreurs réseau</li>
+                                <li>🔍 CSS/JS chargés</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function testAIFunction() {
+    const resultDiv = document.getElementById('testResult');
+    resultDiv.innerHTML = `
+        <div class="alert alert-success">
+            <h6>✅ JavaScript fonctionne !</h6>
+            <p>Le problème n'est pas dans l'exécution JavaScript.</p>
+            <p><strong>Prochaines étapes :</strong></p>
+            <ol>
+                <li>Vérifiez si vous voyez le menu "IA" en haut de la page</li>
+                <li>Allez sur la page Recommandations</li>
+                <li>Cherchez le bouton vert "Recherche IA"</li>
+            </ol>
+        </div>
+    `;
+}
+
+// Vérification automatique au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🤖 Diagnostic IA chargé');
+    console.log('User authenticated:', {{ user.is_authenticated|yesno:"true,false" }});
+    console.log('User type:', '{{ user.user_type|default:"undefined" }}');
+    
+    // Vérifier si Bootstrap est chargé
+    if (typeof bootstrap !== 'undefined') {
+        console.log('✅ Bootstrap JS chargé');
+    } else {
+        console.log('❌ Bootstrap JS non chargé');
+    }
+    
+    // Vérifier si les icônes Bootstrap sont chargées
+    const testIcon = document.createElement('i');
+    testIcon.className = 'bi bi-robot';
+    document.body.appendChild(testIcon);
+    const iconStyle = window.getComputedStyle(testIcon);
+    if (iconStyle.fontFamily.includes('bootstrap-icons')) {
+        console.log('✅ Bootstrap Icons chargées');
+    } else {
+        console.log('❌ Bootstrap Icons non chargées');
+    }
+    document.body.removeChild(testIcon);
+});
+</script>
+{% endblock %}

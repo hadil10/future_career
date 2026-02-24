@@ -7,7 +7,7 @@
     <a href="{% url 'companies:dashboard' %}" class="btn btn-outline-secondary mb-4">&larr; Retour au tableau de bord</a>
     
     <h1 class="mb-2">Candidats pour l'offre : "{{ offer.title }}"</h1>
-    <p class="lead mb-4">Vous avez reçu {{ applicants.count }} candidature(s).</p>
+    <p class="lead mb-4">Vous avez reçu {{ total_applicants }} candidature(s).</p>
 
     <div class="card shadow-sm">
         <div class="card-body">
@@ -27,7 +27,6 @@
                                     <td>{{ application.student.user.get_full_name|default:application.student.user.username }}</td>
                                     <td>{{ application.applied_at|date:"d/m/Y à H:i" }}</td>
                                     <td>
-                  
                                         <a href="{% url 'profiles:profile-detail-public' application.student.id %}" class="btn btn-primary btn-sm" target="_blank">Voir le Profil</a>
                                     </td>
                                 </tr>
@@ -35,6 +34,9 @@
                         </tbody>
                     </table>
                 </div>
+                
+                <!-- Pagination -->
+                {% include 'includes/pagination.html' %}
             {% else %}
                 <p class="text-center">Aucun candidat n'a encore postulé à cette offre.</p>
             {% endif %}

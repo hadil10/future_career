@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de Bord IA{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="mb-0">
+                    <i class="bi bi-robot me-2"></i>
+                    Tableau de Bord IA
+                </h1>
+                <button class="btn btn-primary" onclick="refreshAnalysis()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>
+                    Actualiser l'analyse
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scores du profil -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-person-check me-2"></i>
+                        Complétude du Profil
+                    </h5>
+                    <div class="progress mb-3" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ completeness_percentage }}%" 
+                             aria-valuenow="{{ completeness_percentage }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                            {{ completeness_percentage|floatformat:0 }}%
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        {% if completeness_percentage < 50 %}
+                            Complétez votre profil pour de meilleures recommandations
+                        {% elif completeness_percentage < 80 %}
+                            Bon profil, quelques améliorations possibles
+                        {% else %}
+                            Excellent profil complet !
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-graph-up me-2"></i>
+                        Score d'Employabilité
+                    </h5>
+                    <div class="progress mb-3" style="height: 20px;">
+                        <div class="progress-bar bg-warning" role="progressbar" 
+                             style="width: {{ marketability_percentage }}%" 
+                             aria-valuenow="{{ marketability_percentage }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                            {{ marketability_percentage|floatformat:0 }}%
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        {% if marketability_percentage < 40 %}
+                            Développez vos compétences techniques
+                        {% elif marketability_percentage < 70 %}
+                            Profil attractif pour les employeurs
+                        {% else %}
+                            Profil très recherché sur le marché !
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-lightning me-2"></i>
+                        Actions Recommandées
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-primary w-100 mb-2" onclick="launchQuickAISearch()">
+                                <i class="bi bi-search me-1"></i>
+                                Recherche IA
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'profiles:cv-based-job-search' %}" class="btn btn-outline-info w-100 mb-2">
+                                <i class="bi bi-file-earmark-person me-1"></i>
+                                Recherche CV
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'profiles:ai-career-guidance' %}" class="btn btn-outline-success w-100 mb-2">
+                                <i class="bi bi-compass me-1"></i>
+                                Conseils Carrière
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'profiles:questionnaire' %}" class="btn btn-outline-warning w-100 mb-2">
+                                <i class="bi bi-gear me-1"></i>
+                                Améliorer Profil
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a href="{% url 'profiles:offer-list' %}?sort=priority" class="btn btn-outline-secondary w-100 mb-2">
+                                <i class="bi bi-star me-1"></i>
+                                Offres Prioritaires
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{% url 'profiles:ai-job-search' %}" class="btn btn-outline-secondary w-100 mb-2">
+                                <i class="bi bi-globe me-1"></i>
+                                Recherche Classique
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Forces du profil -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-trophy me-2"></i>
+                        Vos Forces
+                    </h5>
+                    {% if analysis.skill_strengths %}
+                        <div class="list-group list-group-flush">
+                            {% for strength in analysis.skill_strengths %}
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>{{ strength.skill }}</span>
+                                        <span class="badge bg-success">Niveau {{ strength.level }}/5</span>
+                                    </div>
+                                    <small class="text-muted">{{ strength.category|capfirst }}</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Complétez votre questionnaire pour voir vos forces.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommandations de compétences -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        Compétences Recommandées
+                    </h5>
+                    {% if analysis.recommended_skills %}
+                        <div class="list-group list-group-flush">
+                            {% for recommendation in analysis.recommended_skills %}
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold">{{ recommendation.skill }}</span>
+                                        <span class="badge bg-primary">Priorité {{ recommendation.priority }}/5</span>
+                                    </div>
+                                    <small class="text-muted">{{ recommendation.reason }}</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">L'IA analyse votre profil pour des recommandations personnalisées.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommandations récentes -->
+    {% if recent_recommendations %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-clock-history me-2"></i>
+                        Recommandations Récentes
+                    </h5>
+                    <div class="list-group list-group-flush">
+                        {% for recommendation in recent_recommendations %}
+                            <div class="list-group-item border-0 px-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        {% if recommendation.external_job %}
+                                            <h6 class="mb-1">{{ recommendation.external_job.title }}</h6>
+                                            <p class="mb-1">{{ recommendation.external_job.company_name }}</p>
+                                        {% elif recommendation.job_offer %}
+                                            <h6 class="mb-1">{{ recommendation.job_offer.title }}</h6>
+                                            <p class="mb-1">{{ recommendation.job_offer.company.name }}</p>
+                                        {% endif %}
+                                        <small class="text-muted">{{ recommendation.created_at|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                    <span class="badge bg-success">{{ recommendation.compatibility_score|floatformat:0 }}%</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'profiles:ai-search-history' %}" class="btn btn-outline-primary">
+                            Voir tout l'historique
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function refreshAnalysis() {
+    const button = document.querySelector('button[onclick="refreshAnalysis()"]');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> Analyse en cours...';
+    button.disabled = true;
+    
+    fetch('{% url "profiles:refresh-profile-analysis" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erreur lors de l\'actualisation: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur de connexion');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function launchQuickAISearch() {
+    // Rediriger vers la page de recherche IA avec un paramètre pour lancer automatiquement
+    window.location.href = '{% url "profiles:ai-job-search" %}?auto_search=true';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+
+{% block title %}Recherche IA d'Offres{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-search me-2"></i>
+                Recherche Intelligente d'Offres
+            </h1>
+        </div>
+    </div>
+
+    <!-- Filtres de recherche -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-6">
+                            <label for="location" class="form-label">Localisation</label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   value="{{ location }}" placeholder="Paris, Lyon, Remote...">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="external" class="form-label">Sources</label>
+                            <select class="form-select" id="external" name="external">
+                                <option value="true" {% if search_external %}selected{% endif %}>
+                                    Toutes les sources (JSearch + Site)
+                                </option>
+                                <option value="false" {% if not search_external %}selected{% endif %}>
+                                    Site uniquement
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search me-1"></i>
+                                Rechercher
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message d'information mode dégradé -->
+    {% if demo_mode %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Mode démonstration :</strong> 
+                Les offres externes affichées sont simulées pour la démonstration. 
+                Pour accéder aux vraies offres JSearch, configurez les clés API dans les paramètres.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Résultats -->
+    {% if search_performed %}
+        {% if total_results > 0 %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong>{{ total_results }} offre(s) trouvée(s)</strong>
+                    {% if external_count > 0 and internal_count > 0 %}
+                        ({{ external_count }} externes, {{ internal_count }} internes)
+                    {% elif external_count > 0 %}
+                        ({{ external_count }} offres externes)
+                    {% else %}
+                        ({{ internal_count }} offres internes)
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+        {% for job in jobs %}
+            <div class="col-md-6 col-lg-4">
+                {% if job.external_job %}
+                    <!-- Offre externe -->
+                    <div class="card h-100 shadow-sm border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small>
+                                    <i class="bi bi-globe me-1"></i>
+                                    {{ job.external_job.source|capfirst }}
+                                </small>
+                                <span class="badge bg-light text-primary">
+                                    {{ job.compatibility_score|floatformat:0 }}%
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ job.external_job.title }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <i class="bi bi-building me-1"></i>
+                                {{ job.external_job.company_name }}
+                            </h6>
+                            
+                            {% if job.external_job.location %}
+                            <div class="mb-3">
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill">
+                                    <i class="bi bi-geo-alt-fill me-1"></i>
+                                    {{ job.external_job.location }}
+                                </span>
+                            </div>
+                            {% endif %}
+
+                            <p class="card-text text-muted small flex-grow-1">
+                                {{ job.external_job.description|truncatewords:20 }}
+                            </p>
+                            
+                            <div class="mb-3">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" 
+                                         style="width: {{ job.compatibility_score }}%"></div>
+                                </div>
+                                <small class="text-muted">Compatibilité avec votre profil</small>
+                            </div>
+                            
+                            <div class="btn-group w-100">
+                                <a href="{% url 'profiles:external-job-detail' job.external_job.id %}" 
+                                   class="btn btn-outline-primary">
+                                    Détails
+                                </a>
+                                {% if 'mock' in job.external_job.external_url %}
+                                <button class="btn btn-secondary" onclick="showDemoMessage()">
+                                    Démo
+                                    <i class="bi bi-info-circle ms-1"></i>
+                                </button>
+                                {% else %}
+                                <a href="{{ job.external_job.external_url }}" 
+                                   target="_blank" class="btn btn-primary">
+                                    Postuler
+                                    <i class="bi bi-box-arrow-up-right ms-1"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Offre interne -->
+                    <div class="card h-100 shadow-sm border-success">
+                        <div class="card-header bg-success text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small>
+                                    <i class="bi bi-house me-1"></i>
+                                    Notre site
+                                </small>
+                                <span class="badge bg-light text-success">
+                                    {{ job.compatibility_score|floatformat:0 }}%
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ job.offer.title }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <i class="bi bi-building me-1"></i>
+                                {{ job.offer.company.name }}
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <span class="badge bg-primary-subtle text-primary-emphasis rounded-pill me-2">
+                                    <i class="bi bi-briefcase-fill me-1"></i>
+                                    {{ job.offer.get_offer_type_display }}
+                                </span>
+                                {% if job.offer.location %}
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill">
+                                    <i class="bi bi-geo-alt-fill me-1"></i>
+                                    {{ job.offer.location }}
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <p class="card-text text-muted small flex-grow-1">
+                                {{ job.offer.description|truncatewords:20 }}
+                            </p>
+                            
+                            <div class="mb-3">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {{ job.compatibility_score }}%"></div>
+                                </div>
+                                <small class="text-muted">Compatibilité avec votre profil</small>
+                            </div>
+                            
+                            <a href="{% url 'profiles:job-detail' job.offer.id %}" 
+                               class="btn btn-success mt-auto">
+                                Voir les détails
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+        <!-- Pagination -->
+        {% include 'includes/pagination.html' %}
+
+        {% else %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="card text-center">
+                        <div class="card-body py-5">
+                            <i class="bi bi-search display-1 text-muted mb-3"></i>
+                            <h3 class="card-title">Aucune offre trouvée</h3>
+                            <p class="card-text text-muted">
+                                Essayez de modifier vos critères de recherche ou 
+                                <a href="{% url 'profiles:questionnaire' %}">complétez votre profil</a> 
+                                pour de meilleures recommandations.
+                            </p>
+                            <div class="mt-4">
+                                <a href="{% url 'profiles:ai-career-guidance' %}" class="btn btn-primary me-2">
+                                    <i class="bi bi-compass me-1"></i>
+                                    Conseils de carrière
+                                </a>
+                                <a href="{% url 'profiles:offer-list' %}" class="btn btn-outline-primary">
+                                    <i class="bi bi-list me-1"></i>
+                                    Voir toutes les offres
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <!-- Message d'accueil sans recherche -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card text-center">
+                    <div class="card-body py-5">
+                        <i class="bi bi-robot display-1 text-primary mb-3"></i>
+                        <h3 class="card-title">Recherche Intelligente d'Offres</h3>
+                        <p class="card-text text-muted">
+                            Utilisez notre IA pour trouver les offres d'emploi qui correspondent le mieux à votre profil.
+                            Recherchez parmi des milliers d'offres provenant de multiples sources.
+                        </p>
+                        <div class="mt-4">
+                            <p class="text-muted mb-3">
+                                <i class="bi bi-lightbulb me-2"></i>
+                                Astuce : Spécifiez une localisation pour des résultats plus précis
+                            </p>
+                            <a href="{% url 'profiles:ai-career-guidance' %}" class="btn btn-outline-primary me-2">
+                                <i class="bi bi-compass me-1"></i>
+                                Conseils de carrière
+                            </a>
+                            <a href="{% url 'profiles:questionnaire' %}" class="btn btn-primary">
+                                <i class="bi bi-person-check me-1"></i>
+                                Compléter mon profil
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.card.border-primary {
+    border-width: 2px !important;
+}
+
+.card.border-success {
+    border-width: 2px !important;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+</style>
+
+<!-- Modal de message démo -->
+<div class="modal fade" id="demoMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-info-circle text-info me-2"></i>
+                    Offre de démonstration
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-lightbulb me-2"></i>Mode démonstration</h6>
+                    <p class="mb-2">Cette offre est générée automatiquement pour démontrer les fonctionnalités de notre système d'IA.</p>
+                    <p class="mb-0">
+                        <strong>Pour accéder aux vraies offres JSearch :</strong><br>
+                        Configurez les clés API dans les paramètres de l'application.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="bi bi-check-lg me-1"></i>
+                    Compris
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showDemoMessage() {
+    const modal = new bootstrap.Modal(document.getElementById('demoMessageModal'));
+    modal.show();
+}
+</script>
+{% endblock %}
